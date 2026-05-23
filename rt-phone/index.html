@@ -652,9 +652,11 @@ function closeModal(){document.getElementById('modal-senha').classList.add('h');
 async function confirmModal(){
   const pwd=document.getElementById('modal-pwd').value;
   if(pwd!==MASTER_PWD){document.getElementById('modal-err').textContent='Senha incorreta.';return;}
+  const action=pendingAction;
+  const id=pendingId;
   closeModal();
-  if(pendingAction==='del-venda')await delVenda(pendingId);
-  if(pendingAction==='edit-venda')await openEditVenda(pendingId);
+  if(action==='del-venda')await delVenda(id);
+  if(action==='edit-venda')await openEditVenda(id);
 }
 
 // CALC
@@ -949,20 +951,37 @@ async function delVenda(id){
   showToast('Venda excluída!');loadVnd();
 }
 async function openEditVenda(id){
-  const v=cachedVnds.find(x=>x.id===id);
-  if(!v)return;
+  // Try cache first, fallback to DB
+  let v=cachedVnds.find(x=>x.id===id);
+  if(!v){
+    const{data}=await sb.from('vendas').select().eq('id',id).maybeSingle();
+    v=data;
+  }
+  if(!v){showToast('Venda não encontrada','err');return;}
+  goPage('form-venda');
   document.getElementById('form-venda-title').textContent='Editar Venda #'+v.codigo;
   document.getElementById('v-edit-id').value=id;
   await initVndForm();
   setTimeout(()=>{
-    document.getElementById('v-val').value=v.valor;
+    document.getElementById('v-val').value=v.valor||'';
     document.getElementById('v-dsc').value=v.desconto||'';
     document.getElementById('v-obs').value=v.observacao||'';
-    document.getElementById('v-dt').value=v.data_venda||'';
-    if(v.forma_pagamento)document.getElementById('v-pag').value=v.forma_pagamento;
-    if(v.vendedor)document.getElementById('v-vendedor').value=v.vendedor;
-  },500);
-  goPage('form-venda');
+    document.getElementById('v-dt').value=v.data_venda||today();
+    if(v.forma_pagamento){
+      const pag=document.getElementById('v-pag');
+      if(pag)pag.value=v.forma_pagamento;
+    }
+    if(v.tipo_venda){
+      const tp=document.getElementById('v-tipo');
+      if(tp)tp.value=v.tipo_venda;
+    }
+    setTimeout(()=>{
+      if(v.vendedor){
+        const vd=document.getElementById('v-vendedor');
+        if(vd)vd.value=v.vendedor;
+      }
+    },600);
+  },400);
 }
 
 async function initVndForm(){
