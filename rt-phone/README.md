@@ -1,7 +1,7 @@
 # RT Phone — Sistema de Gestão
 
 Sistema de gestão para lojas de iPhone e produtos Apple.
-
+ 
 ## Deploy na Vercel
 
 1. Acesse https://vercel.com e crie uma conta gratuita
