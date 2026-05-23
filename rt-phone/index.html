@@ -337,6 +337,7 @@ textarea.fi{resize:vertical;min-height:65px}
       <div id="pFormProduto" class="h">
         <div class="farea">
           <div class="farea-head"><div class="farea-title">Cadastrar Produto em Estoque</div><button class="farea-back" onclick="goPage('estoque')">← Voltar</button></div>
+          <input type="hidden" id="p-edit-id" value="">
           <div class="tabs">
             <div class="tab active" onclick="swTab(this,'fp-d')">Dados gerais</div>
             <div class="tab" onclick="swTab(this,'fp-p')">Precificação</div>
@@ -425,6 +426,8 @@ textarea.fi{resize:vertical;min-height:65px}
         <div class="fbar">
           <input class="fsearch" id="se-cli" placeholder="Buscar nome, CPF, telefone..." oninput="renderCli()" style="flex:1;max-width:280px">
           <button class="btsm neon" onclick="goPage('form-cliente')">+ Cadastrar</button>
+          <button class="btsm" onclick="exportClientes()">↓ Exportar CSV</button>
+          <label class="btsm" style="cursor:pointer">↑ Importar CSV<input type="file" accept=".csv" style="display:none" onchange="importClientes(this)"></label>
           <button class="btsm" onclick="loadCli()">↻</button>
         </div>
         <div class="scard">
@@ -806,7 +809,10 @@ function renderEst(){
     <td>${p.quantidade}</td>
     <td style="color:var(--dim);font-size:10px">${fd(p.data_entrada)}</td>
     <td><span class="bdg ${bc(p.disponibilidade)}">${p.disponibilidade==='Disponível para venda'?'Disponível':p.disponibilidade}</span></td>
-    <td><button class="abtn" style="color:var(--neon);border-color:rgba(57,255,20,.25)" onclick="goPage('form-venda')">Vender</button></td>
+    <td style="display:flex;gap:4px">
+      <button class="abtn sell" onclick="goPage('form-venda')">Vender</button>
+      <button class="abtn" onclick="editProd('${p.id}')">✏</button>
+    </td>
   </tr>`).join('');
   document.getElementById('pg-est').textContent=list.length+' produto'+(list.length!==1?'s':'');
 }
@@ -814,6 +820,9 @@ function initProdForm(){
   document.getElementById('p-tp').value='Aparelho';
   document.getElementById('p-dt').value=today();
   document.getElementById('err-prod').textContent='';
+  const pei=document.getElementById('p-edit-id');if(pei)pei.value='';
+  document.querySelector('.farea-title').textContent='Cadastrar Produto em Estoque';
+  document.getElementById('btnSaveProd').textContent='💾 Salvar Produto';
   ['p-imei','p-imei2','p-ser','p-cst','p-vnd','p-luc','p-mrg','p-mku','p-gar','p-sku','p-obs','p-bat'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('p-qtd').value='1';
   document.querySelectorAll('#pFormProduto .tbtn').forEach((b,i)=>b.classList.toggle('active',i===0));
@@ -821,6 +830,43 @@ function initProdForm(){
   ['fp-d','fp-p','fp-o'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.classList.toggle('h',i!==0);});
   loadCatalogo();
 }
+async function editProd(id){
+  const p=cachedProds.find(x=>x.id===id);
+  if(!p){showToast('Produto não encontrado','err');return;}
+  goPage('form-produto');
+  document.getElementById('err-prod').textContent='';
+  // Reset tabs
+  document.querySelectorAll('#pFormProduto .tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  ['fp-d','fp-p','fp-o'].forEach((id2,i)=>{const e=document.getElementById(id2);if(e)e.classList.toggle('h',i!==0);});
+  // Fill data
+  setTimeout(async()=>{
+    await loadCatalogo();
+    document.getElementById('p-edit-id').value=id;
+    document.querySelector('.farea-title').textContent='Editar Produto #'+p.codigo;
+    document.getElementById('btnSaveProd').textContent='💾 Atualizar Produto';
+    if(p.tipo){document.querySelectorAll('#pFormProduto .tbtn').forEach(b=>{b.classList.toggle('active',b.textContent.includes(p.tipo));});}
+    document.getElementById('p-tp').value=p.tipo||'Aparelho';
+    document.getElementById('p-dsp').value=p.disponibilidade||'Disponível para venda';
+    document.getElementById('p-imei').value=p.imei||'';
+    document.getElementById('p-imei2').value=p.imei2||'';
+    document.getElementById('p-ser').value=p.serial||'';
+    document.getElementById('p-bat').value=p.bateria||'';
+    document.getElementById('p-qtd').value=p.quantidade||1;
+    document.getElementById('p-cst').value=p.valor_custo||'';
+    document.getElementById('p-vnd').value=p.valor_venda||'';
+    document.getElementById('p-dt').value=p.data_entrada||today();
+    document.getElementById('p-obs').value=p.observacao||'';
+    setTimeout(()=>{
+      if(p.modelo)document.getElementById('p-mod').value=p.modelo;
+      if(p.cor)document.getElementById('p-cor').value=p.cor;
+      if(p.gb)document.getElementById('p-gb').value=p.gb;
+      if(p.marca)document.getElementById('p-marca').value=p.marca;
+      if(p.estado)document.getElementById('p-est').value=p.estado;
+      calcP();
+    },300);
+  },200);
+}
+
 async function saveProd(){
   const btn=document.getElementById('btnSaveProd');const err=document.getElementById('err-prod');
   if(!document.getElementById('p-mod').value){err.textContent='Selecione o modelo';return;}
@@ -828,7 +874,8 @@ async function saveProd(){
   btn.disabled=true;btn.textContent='Salvando...';
   const custo=parseFloat(document.getElementById('p-cst').value)||0;
   const venda=parseFloat(document.getElementById('p-vnd').value)||0;
-  const{error}=await sb.from('produtos').insert({
+  const editId=document.getElementById('p-edit-id')?.value||'';
+  const payload={
     loja_id:lojaId,tipo:document.getElementById('p-tp').value,
     modelo:document.getElementById('p-mod').value,cor:document.getElementById('p-cor').value,
     gb:document.getElementById('p-gb').value,imei:document.getElementById('p-imei').value,
@@ -840,10 +887,16 @@ async function saveProd(){
     disponibilidade:document.getElementById('p-dsp').value,
     data_entrada:document.getElementById('p-dt').value||today(),
     observacao:document.getElementById('p-obs').value,
-  });
+  };
+  let error;
+  if(editId){
+    ({error}=await sb.from('produtos').update(payload).eq('id',editId));
+  } else {
+    ({error}=await sb.from('produtos').insert(payload));
+  }
   btn.disabled=false;btn.textContent='💾 Salvar Produto';
   if(error){err.textContent='Erro: '+error.message;return;}
-  showToast('Produto salvo!');goPage('estoque');
+  showToast(editId?'Produto atualizado!':'Produto salvo!');goPage('estoque');
 }
 
 // CLIENTES
@@ -1058,6 +1111,40 @@ function exportVendas(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='vendas-rt-phone.csv';a.click();
   showToast('CSV exportado!');
+}
+
+function exportClientes(){
+  if(!cachedClis.length){showToast('Nenhum cliente para exportar','err');return;}
+  const cols=['codigo','tipo','nome','cpf','telefone','email','instagram','cidade','estado','observacao'];
+  const header=cols.join(';');
+  const rows=cachedClis.map(c=>cols.map(k=>(c[k]||'').toString().replace(/;/g,',')).join(';'));
+  const csv='\uFEFF'+[header,...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='clientes-rt-phone.csv';a.click();
+  showToast('CSV exportado com '+cachedClis.length+' clientes!');
+}
+
+async function importClientes(input){
+  const file=input.files[0];if(!file)return;
+  const text=await file.text();
+  const lines=text.split('\n').filter(l=>l.trim());
+  if(lines.length<2){showToast('Arquivo vazio ou inválido','err');return;}
+  const headers=lines[0].replace('\uFEFF','').split(';').map(h=>h.trim().toLowerCase());
+  const records=[];
+  for(let i=1;i<lines.length;i++){
+    const vals=lines[i].split(';');
+    const rec={loja_id:lojaId};
+    headers.forEach((h,j)=>{if(h&&vals[j]!==undefined)rec[h]=vals[j].trim();});
+    if(rec.nome)records.push(rec);
+  }
+  if(!records.length){showToast('Nenhum registro válido','err');return;}
+  showToast('Importando '+records.length+' clientes...');
+  const{error}=await sb.from('clientes').insert(records);
+  if(error){showToast('Erro: '+error.message,'err');return;}
+  showToast(records.length+' clientes importados!');
+  input.value='';
+  loadCli();
 }
 
 checkAuth();
