@@ -200,10 +200,21 @@ textarea.fi{resize:vertical;min-height:65px}
       <div id="formLogin">
         <div class="lh">Bem-vindo de volta</div>
         <div class="ls">Acesse o painel da sua loja</div>
-        <div class="fg" style="margin-top:14px"><label>E-mail</label><input class="fi" id="l-email" type="email" placeholder="seu@email.com"></div>
-        <div class="fg"><label>Senha</label><input class="fi" id="l-senha" type="password" placeholder="••••••••"></div>
-        <button class="btnneon" id="btnLogin" onclick="doLogin()">Entrar</button>
-        <div class="lswitch">Não tem conta? <a onclick="showSignup()">Criar conta</a></div>
+        <div class="trow" style="margin-top:14px;margin-bottom:0">
+          <div class="tbtn active" id="tab-admin" onclick="switchLoginTab('admin')" style="font-size:11px">👤 Admin</div>
+          <div class="tbtn" id="tab-vend" onclick="switchLoginTab('vendedor')" style="font-size:11px">🛒 Vendedor</div>
+        </div>
+        <div id="form-admin">
+          <div class="fg" style="margin-top:12px"><label>E-mail</label><input class="fi" id="l-email" type="email" placeholder="seu@email.com"></div>
+          <div class="fg"><label>Senha</label><input class="fi" id="l-senha" type="password" placeholder="••••••••"></div>
+          <button class="btnneon" id="btnLogin" onclick="doLogin()">Entrar como Admin</button>
+        </div>
+        <div id="form-vend" style="display:none">
+          <div class="fg" style="margin-top:12px"><label>Nome do Vendedor</label><input class="fi" id="l-vnome" placeholder="Seu nome completo"></div>
+          <div class="fg"><label>PIN (4 dígitos)</label><input class="fi" id="l-vpin" type="password" placeholder="••••" maxlength="4"></div>
+          <button class="btnneon" id="btnVendLogin" onclick="doVendLogin()">Entrar como Vendedor</button>
+        </div>
+        <div class="lswitch" style="margin-top:10px">Não tem conta? <a onclick="showSignup()">Criar conta</a></div>
       </div>
       <div id="formSignup" class="h">
         <div class="lh">Criar conta</div>
@@ -399,8 +410,9 @@ textarea.fi{resize:vertical;min-height:65px}
           <button class="btsm neon" onclick="showAddCat('modelo')">+ Modelo</button>
           <button class="btsm neon" onclick="showAddCat('cor')">+ Cor</button>
           <button class="btsm neon" onclick="showAddCat('gb')">+ GB</button>
+          <button class="btsm" style="background:rgba(74,158,255,.08);border-color:rgba(74,158,255,.3);color:var(--blue)" onclick="showAddVendedor()">+ Vendedor</button>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
           <div class="scard">
             <div class="shead"><div class="shead-t">📱 Modelos</div></div>
             <div id="cat-modelos" style="padding:8px"></div>
@@ -413,6 +425,11 @@ textarea.fi{resize:vertical;min-height:65px}
             <div class="shead"><div class="shead-t">💾 GB / Armazenamento</div></div>
             <div id="cat-gbs" style="padding:8px"></div>
           </div>
+        </div>
+        <div class="scard">
+          <div class="shead"><div class="shead-t">👥 Vendedores</div><div class="shead-s" onclick="showAddVendedor()">+ Adicionar</div></div>
+          <table class="dt"><thead><tr><th>Nome</th><th>PIN</th><th>Status</th><th></th></tr></thead>
+          <tbody id="cat-vendedores"><tr class="erow"><td colspan="4">Nenhum vendedor cadastrado</td></tr></tbody></table>
         </div>
       </div>
 
@@ -575,6 +592,22 @@ textarea.fi{resize:vertical;min-height:65px}
   </div>
 </div>
 
+<!-- MODAL VENDEDOR -->
+<div id="modal-vend" class="modal-bg h">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('modal-vend').classList.add('h')">×</button>
+    <div class="modal-title">Cadastrar Vendedor</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:14px">O vendedor terá acesso limitado — só vê as próprias vendas.</p>
+    <div class="fg"><label>Nome completo <span class="req">*</span></label><input class="fi" id="mv-nome" placeholder="Nome do vendedor"></div>
+    <div class="fg"><label>PIN (4 dígitos) <span class="req">*</span></label><input class="fi" id="mv-pin" type="password" placeholder="Ex: 1234" maxlength="4"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btnneon-sm" onclick="saveVendedor()">Salvar Vendedor</button>
+      <button class="fghost" onclick="document.getElementById('modal-vend').classList.add('h')">Cancelar</button>
+    </div>
+    <div class="ferr" id="mv-err" style="margin-top:8px"></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPA_URL='https://mkrrtvqzuipjvsshjvjn.supabase.co';
@@ -722,6 +755,7 @@ async function loadCatalogo(){
   cachedCat={modelo:[],cor:[],gb:[]};
   (data||[]).forEach(i=>{if(cachedCat[i.tipo])cachedCat[i.tipo].push(i);});
   renderCat();
+  loadVendedores();
   // Update selects in forms
   fillSelects();
 }
@@ -1057,44 +1091,44 @@ async function delVenda(id){
   showToast('Venda excluída!');loadVnd();
 }
 async function openEditVenda(id){
-  // Try cache first, fallback to DB
   let v=cachedVnds.find(x=>x.id===id);
   if(!v){
     const{data}=await sb.from('vendas').select().eq('id',id).maybeSingle();
     v=data;
   }
   if(!v){showToast('Venda não encontrada','err');return;}
-  goPage('form-venda');
-  document.getElementById('form-venda-title').textContent='Editar Venda #'+v.codigo;
-  document.getElementById('v-edit-id').value=id;
+  // Navigate without triggering initVndForm via goPage
+  Object.values(pElMap).forEach(pid=>{const e=document.getElementById(pid);if(e)e.classList.add('h');});
+  document.getElementById('pFormVenda').classList.remove('h');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tbTitle').textContent='Editar Venda';
+  // Load dropdowns
   await initVndForm();
+  // Set edit ID AFTER initVndForm (which resets it)
+  document.getElementById('v-edit-id').value=id;
+  document.getElementById('form-venda-title').textContent='Editar Venda #'+v.codigo;
+  document.getElementById('btnSaveVnd').textContent='✅ Atualizar Venda';
+  // Fill all fields
+  document.getElementById('v-val').value=v.valor||'';
+  document.getElementById('v-dsc').value=v.desconto||'';
+  document.getElementById('v-obs').value=v.observacao||'';
+  document.getElementById('v-dt').value=v.data_venda||today();
+  if(v.forma_pagamento)document.getElementById('v-pag').value=v.forma_pagamento;
+  if(v.tipo_venda)document.getElementById('v-tipo').value=v.tipo_venda;
+  calcVnd();
+  // Vendedor needs time to load
   setTimeout(()=>{
-    document.getElementById('v-val').value=v.valor||'';
-    document.getElementById('v-dsc').value=v.desconto||'';
-    document.getElementById('v-obs').value=v.observacao||'';
-    document.getElementById('v-dt').value=v.data_venda||today();
-    if(v.forma_pagamento){
-      const pag=document.getElementById('v-pag');
-      if(pag)pag.value=v.forma_pagamento;
-    }
-    if(v.tipo_venda){
-      const tp=document.getElementById('v-tipo');
-      if(tp)tp.value=v.tipo_venda;
-    }
-    setTimeout(()=>{
-      if(v.vendedor){
-        const vd=document.getElementById('v-vendedor');
-        if(vd)vd.value=v.vendedor;
-      }
-    },600);
-  },400);
+    if(v.vendedor){const vd=document.getElementById('v-vendedor');if(vd)vd.value=v.vendedor;}
+  },800);
 }
 
 async function initVndForm(){
   document.getElementById('form-venda-title').textContent='Nova Venda (PDV)';
   document.getElementById('v-edit-id').value='';
+  document.getElementById('btnSaveVnd').textContent='✅ Confirmar Venda';
   document.getElementById('err-vnd').textContent='';
   document.getElementById('v-dt').value=today();
+  const tvb=document.getElementById('v-total-box');if(tvb)tvb.style.display='none';
   ['v-val','v-dsc','v-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   // Produtos disponíveis
   const{data:prods}=await sb.from('produtos').select().eq('loja_id',lojaId).eq('disponibilidade','Disponível para venda');
@@ -1219,6 +1253,96 @@ async function importClientes(input){
   showToast(records.length+' clientes importados!');
   input.value='';
   loadCli();
+}
+
+// LOGIN TAB SWITCH
+function switchLoginTab(tab){
+  document.getElementById('tab-admin').classList.toggle('active',tab==='admin');
+  document.getElementById('tab-vend').classList.toggle('active',tab==='vendedor');
+  document.getElementById('form-admin').style.display=tab==='admin'?'block':'none';
+  document.getElementById('form-vend').style.display=tab==='vendedor'?'block':'none';
+}
+
+// VENDOR LOGIN
+let vendorSession=null;
+async function doVendLogin(){
+  const nome=document.getElementById('l-vnome').value.trim();
+  const pin=document.getElementById('l-vpin').value.trim();
+  if(!nome||!pin){showToast('Preencha nome e PIN','err');return;}
+  const btn=document.getElementById('btnVendLogin');btn.disabled=true;btn.textContent='Verificando...';
+  // Search vendedor across all vendedores
+  const{data,error}=await sb.from('vendedores').select().ilike('nome',nome).eq('pin',pin).eq('ativo',true);
+  btn.disabled=false;btn.textContent='Entrar como Vendedor';
+  if(error||!data||!data.length){showToast('Nome ou PIN incorretos','err');return;}
+  const vend=data[0];
+  vendorSession={id:vend.id,nome:vend.nome,loja_id:vend.loja_id};
+  lojaId=vend.loja_id;
+  lojaName=vend.nome;
+  // Get loja name
+  const{data:loja}=await sb.from('lojas').select('nome').eq('id',vend.loja_id).maybeSingle();
+  if(loja)lojaName=loja.nome;
+  // Setup vendor UI
+  document.getElementById('sb-av').textContent=vend.nome.substring(0,2).toUpperCase();
+  document.getElementById('sb-nome').textContent=vend.nome;
+  document.getElementById('sb-email-sb').textContent='Vendedor';
+  document.getElementById('sb-loja').textContent=lojaName;
+  document.getElementById('tb-loja').textContent=lojaName;
+  // Hide restricted nav items for vendors
+  ['ni-clientes','ni-estoque','ni-catalogo'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.style.display='none';
+  });
+  document.getElementById('vLogin').classList.add('h');
+  document.getElementById('vApp').classList.remove('h');
+  // Load vendor's sales only
+  loadVndVendedor();
+}
+
+async function loadVndVendedor(){
+  const{data}=await sb.from('vendas').select().eq('loja_id',lojaId).eq('vendedor',vendorSession.nome).order('created_at',{ascending:false});
+  cachedVnds=data||[];
+  // Show only vendas page
+  Object.values(pElMap).forEach(pid=>{const e=document.getElementById(pid);if(e)e.classList.add('h');});
+  document.getElementById('pVendas').classList.remove('h');
+  document.getElementById('tbTitle').textContent='Minhas Vendas';
+  // Hide edit/delete buttons for vendors
+  renderVnd();
+}
+
+// VENDEDOR CRUD
+function showAddVendedor(){document.getElementById('mv-nome').value='';document.getElementById('mv-pin').value='';document.getElementById('mv-err').textContent='';document.getElementById('modal-vend').classList.remove('h');}
+
+async function saveVendedor(){
+  const nome=document.getElementById('mv-nome').value.trim();
+  const pin=document.getElementById('mv-pin').value.trim();
+  const err=document.getElementById('mv-err');
+  if(!nome){err.textContent='Nome é obrigatório';return;}
+  if(!pin||pin.length<4){err.textContent='PIN deve ter 4 dígitos';return;}
+  const{error}=await sb.from('vendedores').insert({loja_id:lojaId,nome,pin,ativo:true});
+  if(error){err.textContent='Erro: '+error.message;return;}
+  // Also add to catalogo for dropdown
+  await sb.from('catalogo').insert({loja_id:lojaId,tipo:'vendedor',valor:nome});
+  document.getElementById('modal-vend').classList.add('h');
+  showToast(nome+' cadastrado como vendedor!');
+  loadCatalogo();
+}
+
+async function loadVendedores(){
+  const{data}=await sb.from('vendedores').select().eq('loja_id',lojaId).order('nome');
+  const tb=document.getElementById('cat-vendedores');
+  if(!tb)return;
+  if(!data||!data.length){tb.innerHTML='<tr class="erow"><td colspan="4">Nenhum vendedor cadastrado</td></tr>';return;}
+  tb.innerHTML=data.map(v=>`<tr>
+    <td style="font-weight:600">${v.nome}</td>
+    <td class="mono">••••</td>
+    <td><span class="bdg ${v.ativo?'ok':'err'}">${v.ativo?'Ativo':'Inativo'}</span></td>
+    <td><button class="abtn danger" onclick="toggleVendedor('${v.id}',${v.ativo})">${v.ativo?'Desativar':'Ativar'}</button></td>
+  </tr>`).join('');
+}
+
+async function toggleVendedor(id,ativo){
+  await sb.from('vendedores').update({ativo:!ativo}).eq('id',id);
+  showToast(ativo?'Vendedor desativado':'Vendedor ativado');
+  loadVendedores();
 }
 
 checkAuth();
