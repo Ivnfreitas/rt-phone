@@ -1091,35 +1091,70 @@ async function delVenda(id){
   showToast('Venda excluída!');loadVnd();
 }
 async function openEditVenda(id){
+  // Fetch venda data
   let v=cachedVnds.find(x=>x.id===id);
   if(!v){
     const{data}=await sb.from('vendas').select().eq('id',id).maybeSingle();
     v=data;
   }
   if(!v){showToast('Venda não encontrada','err');return;}
-  // Navigate without triggering initVndForm via goPage
+
+  // Navigate manually (bypass goPage to avoid calling initVndForm)
   Object.values(pElMap).forEach(pid=>{const e=document.getElementById(pid);if(e)e.classList.add('h');});
   document.getElementById('pFormVenda').classList.remove('h');
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   document.getElementById('tbTitle').textContent='Editar Venda';
-  // Load dropdowns
-  await initVndForm();
-  // Set edit ID AFTER initVndForm (which resets it)
+  document.getElementById('form-venda-title').textContent='Editar Venda #'+(v.codigo||'');
   document.getElementById('v-edit-id').value=id;
-  document.getElementById('form-venda-title').textContent='Editar Venda #'+v.codigo;
   document.getElementById('btnSaveVnd').textContent='✅ Atualizar Venda';
-  // Fill all fields
+  document.getElementById('err-vnd').textContent='';
+  const tvb=document.getElementById('v-total-box');if(tvb)tvb.style.display='none';
+
+  // Load ALL products (including sold) so current product appears
+  const{data:todosProds}=await sb.from('produtos').select().eq('loja_id',lojaId).order('created_at',{ascending:false});
+  const ps=document.getElementById('v-prod');
+  ps.innerHTML='<option value="">Selecionar produto...</option>';
+  (todosProds||[]).forEach(p=>{
+    const nome=[p.modelo,p.cor,p.gb].filter(Boolean).join(' - ');
+    const opt=document.createElement('option');
+    opt.value=p.id;
+    opt.textContent=(p.codigo||'')+' · '+nome+(p.disponibilidade==='Vendido'?' [Vendido]':'');
+    opt.dataset.price=p.valor_venda;
+    opt.dataset.nome=nome;
+    opt.dataset.gb=p.gb||'';
+    ps.appendChild(opt);
+  });
+
+  // Load clients
+  const{data:clis}=await sb.from('clientes').select().eq('loja_id',lojaId);
+  const cs=document.getElementById('v-cli');
+  cs.innerHTML='<option value="">Selecionar cliente...</option>';
+  (clis||[]).forEach(c=>{
+    const opt=document.createElement('option');
+    opt.value=c.id;opt.textContent=c.nome;opt.dataset.nome=c.nome;
+    cs.appendChild(opt);
+  });
+
+  // Load vendedores
+  await fillVendedores();
+
+  // Pre-select existing data
+  if(v.produto_id)ps.value=v.produto_id;
+  if(v.cliente_id)cs.value=v.cliente_id;
+
+  // Fill all text fields
   document.getElementById('v-val').value=v.valor||'';
   document.getElementById('v-dsc').value=v.desconto||'';
   document.getElementById('v-obs').value=v.observacao||'';
   document.getElementById('v-dt').value=v.data_venda||today();
   if(v.forma_pagamento)document.getElementById('v-pag').value=v.forma_pagamento;
   if(v.tipo_venda)document.getElementById('v-tipo').value=v.tipo_venda;
-  calcVnd();
-  // Vendedor needs time to load
+
+  // Vendedor after load
   setTimeout(()=>{
     if(v.vendedor){const vd=document.getElementById('v-vendedor');if(vd)vd.value=v.vendedor;}
-  },800);
+    calcVnd();
+  },300);
 }
 
 async function initVndForm(){
@@ -1153,13 +1188,18 @@ function fillVPrice(){
 function calcVnd(){
   const val=parseFloat(document.getElementById('v-val').value)||0;
   const dsc=parseFloat(document.getElementById('v-dsc').value)||0;
-  const total=val-dsc;
+  const total=Math.max(0,val-dsc);
   const box=document.getElementById('v-total-box');
   const calc=document.getElementById('v-total-calc');
-  if(val>0&&dsc>0){
+  if(val>0){
     box.style.display='block';
-    calc.textContent='R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    calc.style.color=total<0?'var(--red)':'var(--neon)';
+    if(dsc>0){
+      calc.textContent='R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' (desconto: R$ '+dsc.toLocaleString('pt-BR',{minimumFractionDigits:2})+')';
+      calc.style.color=total<=0?'var(--red)':'var(--neon)';
+    } else {
+      calc.textContent='R$ '+val.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+      calc.style.color='var(--neon)';
+    }
   } else {
     box.style.display='none';
   }
@@ -1172,28 +1212,38 @@ async function saveVnd(){
   const editId=document.getElementById('v-edit-id').value;
   const pSel=document.getElementById('v-prod');const cSel=document.getElementById('v-cli');
   const pOpt=pSel.options[pSel.selectedIndex];const cOpt=cSel.options[cSel.selectedIndex];
+  const vVal=parseFloat(document.getElementById('v-val').value)||0;
+  const vDsc=parseFloat(document.getElementById('v-dsc').value)||0;
   const payload={
     loja_id:lojaId,produto_id:pSel.value||null,cliente_id:cSel.value||null,
     produto_nome:pOpt?.dataset.nome||'Produto avulso',cliente_nome:cOpt?.dataset.nome||'—',
     gb:pOpt?.dataset.gb||null,
     vendedor:document.getElementById('v-vendedor').value||null,
     tipo_venda:document.getElementById('v-tipo').value,
-    valor:parseFloat(document.getElementById('v-val').value)||0,
-    desconto:parseFloat(document.getElementById('v-dsc').value)||0,
+    valor:vVal,
+    desconto:vDsc,
+    valor_final:Math.max(0,vVal-vDsc),
     forma_pagamento:document.getElementById('v-pag').value,
     data_venda:document.getElementById('v-dt').value||today(),
     status:'Concluído',observacao:document.getElementById('v-obs').value,
   };
   let error;
-  if(editId){
+  if(editId&&editId.length>10){
+    // Update existing sale
     ({error}=await sb.from('vendas').update(payload).eq('id',editId));
+    if(!error)showToast('Venda atualizada com sucesso!');
   } else {
+    // New sale
     ({error}=await sb.from('vendas').insert(payload));
-    if(!error&&pSel.value)await sb.from('produtos').update({disponibilidade:'Vendido'}).eq('id',pSel.value);
+    if(!error&&pSel.value){
+      await sb.from('produtos').update({disponibilidade:'Vendido'}).eq('id',pSel.value);
+    }
+    if(!error)showToast('Venda registrada!');
   }
   btn.disabled=false;btn.textContent='✅ Confirmar Venda';
-  if(error){err.textContent='Erro: '+error.message;return;}
-  showToast(editId?'Venda atualizada!':'Venda registrada!');goPage('vendas');
+  if(error){err.textContent='Erro ao salvar: '+error.message;return;}
+  await loadVnd();
+  goPage('vendas');
 }
 
 // EXPORTAR CSV
