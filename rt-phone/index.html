@@ -200,20 +200,9 @@ textarea.fi{resize:vertical;min-height:65px}
       <div id="formLogin">
         <div class="lh">Bem-vindo de volta</div>
         <div class="ls">Acesse o painel da sua loja</div>
-        <div class="trow" style="margin-top:14px;margin-bottom:0">
-          <div class="tbtn active" id="tab-admin" onclick="switchLoginTab('admin')" style="font-size:11px">👤 Admin</div>
-          <div class="tbtn" id="tab-vend" onclick="switchLoginTab('vendedor')" style="font-size:11px">🛒 Vendedor</div>
-        </div>
-        <div id="form-admin">
-          <div class="fg" style="margin-top:12px"><label>E-mail</label><input class="fi" id="l-email" type="email" placeholder="seu@email.com"></div>
-          <div class="fg"><label>Senha</label><input class="fi" id="l-senha" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-          <button class="btnneon" id="btnLogin" onclick="doLogin()">Entrar como Admin</button>
-        </div>
-        <div id="form-vend" style="display:none">
-          <div class="fg" style="margin-top:12px"><label>Nome do Vendedor</label><input class="fi" id="l-vnome" placeholder="Seu nome completo"></div>
-          <div class="fg"><label>PIN (4 dígitos)</label><input class="fi" id="l-vpin" type="password" placeholder="••••" maxlength="4" autocomplete="off" data-form-type="other"></div>
-          <button class="btnneon" id="btnVendLogin" onclick="doVendLogin()">Entrar como Vendedor</button>
-        </div>
+        <div class="fg" style="margin-top:18px"><label>E-mail ou Nome</label><input class="fi" id="l-email" placeholder="E-mail (admin) ou nome (vendedor)" autocomplete="off"></div>
+        <div class="fg"><label>Senha ou PIN</label><input class="fi" id="l-senha" type="password" placeholder="Senha (admin) ou PIN de 4 dígitos (vendedor)" autocomplete="off" data-form-type="other" data-lpignore="true"></div>
+        <button class="btnneon" id="btnLogin" onclick="doLoginSmart()">Entrar</button>
         <div class="lswitch" style="margin-top:10px">Não tem conta? <a onclick="showSignup()">Criar conta</a></div>
       </div>
       <div id="formSignup" class="h">
@@ -650,12 +639,45 @@ async function initLoja(){
 function showApp(){document.getElementById('vLogin').classList.add('h');document.getElementById('vApp').classList.remove('h');goPage('dash');}
 function showLogin(){document.getElementById('formLogin').classList.remove('h');document.getElementById('formSignup').classList.add('h');}
 function showSignup(){document.getElementById('formLogin').classList.add('h');document.getElementById('formSignup').classList.remove('h');}
-async function doLogin(){
-  const btn=document.getElementById('btnLogin');btn.disabled=true;btn.textContent='Entrando...';
-  const{error}=await sb.auth.signInWithPassword({email:document.getElementById('l-email').value.trim(),password:document.getElementById('l-senha').value});
-  if(error){showToast('E-mail ou senha incorretos','err');btn.disabled=false;btn.textContent='Entrar';return;}
-  const{data:{session}}=await sb.auth.getSession();currentUser=session.user;await initLoja();showApp();
+async function doLoginSmart(){
+  const btn=document.getElementById('btnLogin');
+  btn.disabled=true;btn.textContent='Verificando...';
+  const identifier=document.getElementById('l-email').value.trim();
+  const senha=document.getElementById('l-senha').value.trim();
+  if(!identifier||!senha){showToast('Preencha todos os campos','err');btn.disabled=false;btn.textContent='Entrar';return;}
+
+  // Try admin login first (email format)
+  if(identifier.includes('@')){
+    const{error}=await sb.auth.signInWithPassword({email:identifier,password:senha});
+    if(!error){
+      const{data:{session}}=await sb.auth.getSession();
+      currentUser=session.user;await initLoja();showApp();return;
+    }
+    showToast('E-mail ou senha incorretos','err');btn.disabled=false;btn.textContent='Entrar';return;
+  }
+
+  // Try vendor login (name + PIN)
+  const{data,error}=await sb.from('vendedores').select().ilike('nome',identifier).eq('pin',senha).eq('ativo',true);
+  if(error||!data||!data.length){
+    // Try admin with non-email format too
+    showToast('Credenciais incorretas','err');btn.disabled=false;btn.textContent='Entrar';return;
+  }
+  const vend=data[0];
+  vendorSession={id:vend.id,nome:vend.nome,loja_id:vend.loja_id};
+  lojaId=vend.loja_id;
+  const{data:loja}=await sb.from('lojas').select('nome').eq('id',vend.loja_id).maybeSingle();
+  if(loja)lojaName=loja.nome;
+  document.getElementById('sb-av').textContent=vend.nome.substring(0,2).toUpperCase();
+  document.getElementById('sb-nome').textContent=vend.nome;
+  document.getElementById('sb-email-sb').textContent='Vendedor';
+  document.getElementById('sb-loja').textContent=lojaName;
+  document.getElementById('tb-loja').textContent=lojaName;
+  ['ni-clientes','ni-estoque','ni-catalogo'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  document.getElementById('vLogin').classList.add('h');
+  document.getElementById('vApp').classList.remove('h');
+  loadVndVendedor();
 }
+async function doLogin(){doLoginSmart();}
 async function doSignup(){
   const btn=document.getElementById('btnSignup');btn.disabled=true;btn.textContent='Criando...';
   const loja=document.getElementById('s-loja').value.trim(),email=document.getElementById('s-email').value.trim(),senha=document.getElementById('s-senha').value;
@@ -714,8 +736,9 @@ async function loadDash(){
     sb.from('vendas').select('valor,desconto,produto_nome,cliente_nome,forma_pagamento,data_venda,status,codigo,vendedor').eq('loja_id',lojaId).order('created_at',{ascending:false}),
     sb.from('produtos').select('valor_custo,valor_venda,lucro,disponibilidade').eq('loja_id',lojaId),
   ]);
-  // valor_final = valor - desconto; fallback to valor if not set
-  const fat=(vnds||[]).reduce((a,v)=>a+(parseFloat(v.valor_final||v.valor)||0),0);
+  // valor_final = valor - desconto; for old sales calculate on the fly
+  const vFinal=v=>parseFloat(v.valor_final||(parseFloat(v.valor||0)-parseFloat(v.desconto||0)))||0;
+  const fat=(vnds||[]).reduce((a,v)=>a+Math.max(0,vFinal(v)),0);
   const fatBruto=(vnds||[]).reduce((a,v)=>a+(parseFloat(v.valor)||0),0);
   const totalDesc=(vnds||[]).reduce((a,v)=>a+(parseFloat(v.desconto)||0),0);
   const qtdVnd=(vnds||[]).length;
@@ -1339,47 +1362,8 @@ async function importClientes(input){
   loadCli();
 }
 
-// LOGIN TAB SWITCH
-function switchLoginTab(tab){
-  document.getElementById('tab-admin').classList.toggle('active',tab==='admin');
-  document.getElementById('tab-vend').classList.toggle('active',tab==='vendedor');
-  document.getElementById('form-admin').style.display=tab==='admin'?'block':'none';
-  document.getElementById('form-vend').style.display=tab==='vendedor'?'block':'none';
-}
-
-// VENDOR LOGIN
+// VENDOR SESSION
 let vendorSession=null;
-async function doVendLogin(){
-  const nome=document.getElementById('l-vnome').value.trim();
-  const pin=document.getElementById('l-vpin').value.trim();
-  if(!nome||!pin){showToast('Preencha nome e PIN','err');return;}
-  const btn=document.getElementById('btnVendLogin');btn.disabled=true;btn.textContent='Verificando...';
-  // Search vendedor across all vendedores
-  const{data,error}=await sb.from('vendedores').select().ilike('nome',nome).eq('pin',pin).eq('ativo',true);
-  btn.disabled=false;btn.textContent='Entrar como Vendedor';
-  if(error||!data||!data.length){showToast('Nome ou PIN incorretos','err');return;}
-  const vend=data[0];
-  vendorSession={id:vend.id,nome:vend.nome,loja_id:vend.loja_id};
-  lojaId=vend.loja_id;
-  lojaName=vend.nome;
-  // Get loja name
-  const{data:loja}=await sb.from('lojas').select('nome').eq('id',vend.loja_id).maybeSingle();
-  if(loja)lojaName=loja.nome;
-  // Setup vendor UI
-  document.getElementById('sb-av').textContent=vend.nome.substring(0,2).toUpperCase();
-  document.getElementById('sb-nome').textContent=vend.nome;
-  document.getElementById('sb-email-sb').textContent='Vendedor';
-  document.getElementById('sb-loja').textContent=lojaName;
-  document.getElementById('tb-loja').textContent=lojaName;
-  // Hide restricted nav items for vendors
-  ['ni-clientes','ni-estoque','ni-catalogo'].forEach(id=>{
-    const e=document.getElementById(id);if(e)e.style.display='none';
-  });
-  document.getElementById('vLogin').classList.add('h');
-  document.getElementById('vApp').classList.remove('h');
-  // Load vendor's sales only
-  loadVndVendedor();
-}
 
 async function loadVndVendedor(){
   const{data}=await sb.from('vendas').select().eq('loja_id',lojaId).eq('vendedor',vendorSession.nome).order('created_at',{ascending:false});
