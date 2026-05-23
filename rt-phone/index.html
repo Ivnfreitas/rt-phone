@@ -1034,8 +1034,7 @@ function exportVendas(){
   const cols=['codigo','data_venda','vendedor','cliente_nome','produto_nome','gb','valor','desconto','forma_pagamento','tipo_venda','status'];
   const header=cols.join(';');
   const rows=list.map(v=>cols.map(c=>(v[c]||'').toString().replace(/;/g,',')).join(';'));
-  const csv='﻿'+[header,...rows].join('
-');
+  const csv='\uFEFF'+[header,...rows].join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='vendas-rt-phone.csv';a.click();
