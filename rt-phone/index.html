@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0A0A0A">
 <title>RT Phone — Sistema de Gestão</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -160,6 +164,130 @@ textarea.fi{resize:vertical;min-height:65px}
 .modal{background:var(--s1);border:1px solid var(--bd2);border-radius:14px;padding:28px;width:100%;max-width:420px;position:relative}
 .modal-title{font-size:15px;font-weight:700;margin-bottom:16px}
 .modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+
+/* ========== MOBILE RESPONSIVE ========== */
+@media(max-width:768px){
+  :root{--sw:0px}
+
+  /* Sidebar vira menu bottom */
+  .sidebar{
+    width:100%!important;height:60px;bottom:0;top:auto;
+    flex-direction:row;border-right:none;
+    border-top:1px solid var(--bd);z-index:200;
+    overflow:hidden;
+  }
+  .sb-top,.sb-user,.sb-foot,.sb-sec,.sb-plan,.sb-loja,.btn-out{display:none!important}
+  .sb-nm,.sb-tg,.sb-av{display:none!important}
+  .sb-nav{
+    display:flex!important;flex-direction:row;align-items:center;
+    justify-content:space-around;padding:0;width:100%;overflow:visible;
+  }
+  .ni{
+    flex-direction:column;gap:2px;padding:6px 4px;
+    font-size:9px!important;color:var(--muted);
+    border-radius:0;margin:0;flex:1;text-align:center;
+    justify-content:center;min-width:0;
+  }
+  .ni svg{width:20px!important;height:20px!important;margin:0 auto}
+  .ni.active{background:transparent;color:var(--neon)}
+  .ni.active svg{filter:drop-shadow(0 0 4px var(--neon))}
+
+  /* Main area */
+  .main{margin-left:0!important;padding-bottom:70px}
+  .topbar{
+    height:52px;padding:0 14px;
+    position:sticky;top:0;z-index:100;
+  }
+  .tb-title{font-size:14px}
+  .tb-emp{display:none}
+  .pcontent{padding:12px!important}
+
+  /* Dashboard KPI cards - 2 columns */
+  .dash-kpi-grid{
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;margin-bottom:8px!important;
+  }
+  .dcard{padding:12px 14px!important}
+  .dcard-val{font-size:18px!important;letter-spacing:-.5px!important}
+  .dcard-proj{font-size:9px!important}
+  .dcard-lbl{font-size:10px!important;margin-top:3px!important}
+  .dcard-ico{font-size:32px!important;right:8px!important}
+
+  /* Entradas/saidas - 1 coluna */
+  .dash-kpi-grid + div > div:first-child,
+  div[style*="grid-template-columns:1fr 1fr"]{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Tables - scroll horizontal */
+  .dt{font-size:11px}
+  .dt th{padding:6px 8px;font-size:8px}
+  .dt td{padding:7px 8px}
+  div[style*="overflow-x:auto"]{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  /* Filter bar */
+  .fbar{gap:6px}
+  .fsearch{font-size:12px;padding:6px 10px}
+  .btsm{font-size:11px;padding:6px 10px}
+
+  /* Form grid - single column */
+  .fgrid{grid-template-columns:1fr!important;gap:8px!important}
+  .full{grid-column:1!important}
+  .fbody{padding:14px!important}
+  .farea-head{padding:10px 14px}
+  .tabs{padding:6px 10px;gap:4px}
+  .tab{font-size:10px;padding:4px 8px}
+
+  /* Section cards */
+  .scard{border-radius:10px}
+  .shead{padding:10px 14px;flex-wrap:wrap;gap:6px}
+  .shead-t{font-size:12px}
+
+  /* Smrow - 2 cols */
+  .smrow{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .smv{font-size:18px}
+
+  /* Modal */
+  .modal{width:90%!important;padding:20px!important;margin:0 16px}
+  .modal-bg{align-items:flex-end;padding-bottom:0}
+  .modal{border-radius:16px 16px 0 0!important}
+
+  /* Login */
+  .lcard{padding:24px 20px!important}
+  .rtlogoimg{width:240px!important}
+  .lh{font-size:16px}
+  .ls{font-size:12px}
+
+  /* Catalog grid */
+  div[style*="grid-template-columns:repeat(3,1fr)"]{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Ffoot */
+  .ffoot{padding:10px 14px;gap:6px;flex-wrap:wrap}
+  .btnneon-sm{font-size:12px;padding:8px 14px}
+  .fghost{font-size:12px;padding:7px 12px}
+
+  /* Topbar logo area */
+  .topbar .tb-r{gap:6px}
+
+  /* Hide less important columns on mobile */
+  .dt th:nth-child(6),.dt td:nth-child(6),
+  .dt th:nth-child(7),.dt td:nth-child(7){display:none}
+
+  /* Breakdown table - stack */
+  div[style*="grid-template-columns:1fr 1fr;gap:20px"]{
+    grid-template-columns:1fr!important;gap:0!important;
+  }
+}
+
+@media(max-width:480px){
+  .dash-kpi-grid{grid-template-columns:1fr!important}
+  .dcard-val{font-size:22px!important}
+  .rtlogoimg{width:200px!important}
+  .ni{font-size:8px!important}
+  .ni svg{width:18px!important;height:18px!important}
+}
 </style>
 </head>
 <body>
@@ -233,25 +361,25 @@ textarea.fi{resize:vertical;min-height:65px}
     <nav class="sb-nav">
       <div class="sb-sec">Principal</div>
       <div class="ni active" id="ni-dash" onclick="goPage('dash')">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Home</span>
       </div>
       <div class="sb-sec">Vendas</div>
       <div class="ni" id="ni-clientes" onclick="goPage('clientes')">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Clientes
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Clientes</span>
       </div>
       <div class="ni" id="ni-vendas" onclick="goPage('vendas')">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Vendas (PDV)
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span>Vendas</span>
       </div>
       <div class="sb-sec">Estoque</div>
       <div class="ni" id="ni-estoque" onclick="goPage('estoque')">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>Estoque Atual
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg><span>Estoque</span>
       </div>
       <div class="ni" id="ni-catalogo" onclick="goPage('catalogo')">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Catálogo
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span>Catálogo</span>
       </div>
       <div class="sb-sec">Financeiro</div>
       <div class="ni" onclick="goPage('relatorio')">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Relatórios
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Relatórios</span>
       </div>
     </nav>
     <div class="sb-foot">
