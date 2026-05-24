@@ -322,7 +322,12 @@ textarea.fi{resize:vertical;min-height:65px}
           <input class="fsearch" id="se-est" placeholder="Buscar produto, IMEI..." oninput="renderEst()" style="flex:1;max-width:200px">
           <select class="fsearch" id="sf-modelo" onchange="renderEst()" style="max-width:150px"><option value="">Todos modelos</option></select>
           <select class="fsearch" id="sf-gb" onchange="renderEst()" style="max-width:90px"><option value="">Todos GB</option></select>
-          <button class="btsm" id="btn-toggle-vendidos" onclick="toggleVendidos()" style="background:rgba(57,255,20,.08);border-color:rgba(57,255,20,.3);color:var(--neon)">👁 Ocultar vendidos</button>
+          <div style="display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:5px 12px;cursor:pointer" onclick="toggleVendidos()">
+            <span style="font-size:11px;color:var(--muted)" id="lbl-toggle">Ocultar vendidos</span>
+            <div id="sw-vendidos" style="width:36px;height:20px;background:var(--neon);border-radius:10px;position:relative;transition:background .2s;flex-shrink:0">
+              <div id="sw-knob" style="width:16px;height:16px;background:#000;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .2s"></div>
+            </div>
+          </div>
           <button class="btsm neon" onclick="goPage('form-produto')">+ Novo Produto</button>
           <button class="btsm" onclick="loadEst()">↻</button>
         </div>
@@ -356,11 +361,24 @@ textarea.fi{resize:vertical;min-height:65px}
                 <div class="fg"><label>IMEI</label><input class="fi" id="p-imei" placeholder="351057065846706" maxlength="15"></div>
                 <div class="fg"><label>IMEI 2</label><input class="fi" id="p-imei2" placeholder="Segundo IMEI"></div>
                 <div class="fg"><label>Modelo Aparelho <span class="req">*</span></label>
-                  <select class="fi" id="p-mod"><option value="">Selecionar</option></select>
+                  <div style="display:flex;gap:6px">
+                    <select class="fi" id="p-mod" style="flex:1"><option value="">Selecionar</option></select>
+                    <button type="button" onclick="quickAddCat('modelo','Novo modelo (ex: IPHONE AIR)')" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--neon);border-radius:8px;padding:0 12px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0">+</button>
+                  </div>
                 </div>
                 <div class="fg"><label>Serial Number</label><input class="fi" id="p-ser" placeholder="DV6F72DKN735"></div>
-                <div class="fg"><label>Cor <span class="req">*</span></label><select class="fi" id="p-cor"><option value="">Selecionar</option></select></div>
-                <div class="fg"><label>GB</label><select class="fi" id="p-gb"><option value="">Selecionar</option></select></div>
+                <div class="fg"><label>Cor <span class="req">*</span></label>
+                  <div style="display:flex;gap:6px">
+                    <select class="fi" id="p-cor" style="flex:1"><option value="">Selecionar</option></select>
+                    <button type="button" onclick="quickAddCat('cor','Nova cor (ex: TITÂNIO AZUL)')" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--neon);border-radius:8px;padding:0 12px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0">+</button>
+                  </div>
+                </div>
+                <div class="fg"><label>GB</label>
+                  <div style="display:flex;gap:6px">
+                    <select class="fi" id="p-gb" style="flex:1"><option value="">Selecionar</option></select>
+                    <button type="button" onclick="quickAddCat('gb','Novo armazenamento (ex: 2TB)')" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--neon);border-radius:8px;padding:0 12px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0">+</button>
+                  </div>
+                </div>
                 <div class="fg"><label>Marca</label><select class="fi" id="p-marca"><option>APPLE</option><option>SAMSUNG</option><option>XIAOMI</option><option>MOTOROLA</option></select></div>
                 <div class="fg"><label>Estado do Aparelho</label><select class="fi" id="p-est"><option>SEMINOVO</option><option>NOVO</option><option>USADO</option><option>PARA PEÇAS</option></select></div>
                 <div class="fg"><label>Saúde Bateria (%)</label><input class="fi" id="p-bat" type="number" min="0" max="100" placeholder="89"></div>
@@ -472,12 +490,14 @@ textarea.fi{resize:vertical;min-height:65px}
             </div>
             <div id="fc-e" class="h">
               <div class="fgrid">
-                <div class="fg"><label>CEP</label><input class="fi" id="c-cep" placeholder="00000-000"></div>
-                <div class="fg"><label>Estado</label><select class="fi" id="c-uf"><option value="">Selecionar</option><option>ES</option><option>SP</option><option>RJ</option><option>MG</option><option>BA</option><option>RS</option><option>PR</option><option>SC</option><option>GO</option><option>DF</option></select></div>
-                <div class="fg full"><label>Rua</label><input class="fi" id="c-rua" placeholder="Rua, Avenida..."></div>
+                <div class="fg"><label>CEP</label><input class="fi" id="c-cep" placeholder="00000-000" oninput="buscaCep(this.value)"></div>
+                <div class="fg"><label>Estado</label><select class="fi" id="c-uf"><option value="">Selecionar</option><option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option></select></div>
+                <div class="fg full"><label>Rua / Logradouro</label><input class="fi" id="c-rua" placeholder="Rua, Avenida, Travessa..."></div>
                 <div class="fg"><label>Número</label><input class="fi" id="c-num" placeholder="123"></div>
+                <div class="fg"><label>Complemento</label><input class="fi" id="c-comp" placeholder="Apto, Bloco..."></div>
                 <div class="fg"><label>Bairro</label><input class="fi" id="c-bai" placeholder="Bairro"></div>
-                <div class="fg full"><label>Cidade</label><input class="fi" id="c-cid" placeholder="Cidade"></div>
+                <div class="fg"><label>Cidade</label><input class="fi" id="c-cid" placeholder="Cidade"></div>
+                <div class="fg"><label>Referência</label><input class="fi" id="c-ref" placeholder="Próximo a..."></div>
               </div>
             </div>
           </div>
@@ -504,7 +524,7 @@ textarea.fi{resize:vertical;min-height:65px}
         <div class="scard">
           <div style="overflow-x:auto">
           <table class="dt" style="min-width:800px">
-            <thead><tr><th>Cód.</th><th>Data</th><th>Vendedor</th><th>Cliente</th><th>Produto</th><th>IMEI</th><th>GB</th><th>Valor</th><th>Desconto</th><th>V. Final</th><th>Forma Pag.</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Cód.</th><th>Data</th><th>Vendedor</th><th>Cliente</th><th>Produto</th><th>IMEI</th><th>GB</th><th>Canal</th><th>Valor Final</th><th>Forma Pag.</th><th>Status</th><th></th></tr></thead>
             <tbody id="t-vnd"><tr class="erow"><td colspan="10">Carregando...</td></tr></tbody>
           </table></div>
           <div class="pgr"><div class="pgr-info" id="pg-vnd">0 vendas</div><div id="pg-vnd-total" style="font-size:10px;color:var(--neon)"></div></div>
@@ -522,6 +542,7 @@ textarea.fi{resize:vertical;min-height:65px}
               <div class="fg h" id="v-imei-row"><label>IMEI do Produto</label><input class="fi" id="v-imei-show" readonly style="color:var(--neon);font-family:'Courier New',monospace;background:var(--s3)"></div>
               <div class="fg"><label>Cliente</label><select class="fi" id="v-cli"><option value="">Selecionar cliente...</option></select></div>
               <div class="fg"><label>Vendedor <span class="req">*</span></label><select class="fi" id="v-vendedor"><option value="">Selecionar vendedor...</option></select></div>
+              <div class="fg"><label>Canal de Aquisição</label><select class="fi" id="v-canal"><option>TRAFEGO PAGO</option><option>INDICAÇÃO</option><option>CLIENTE RECORRENTE</option><option>PRESENCIAL</option><option>INSTAGRAM</option><option>WHATSAPP</option><option>MARKETPLACE</option><option>REVENDA</option><option>OUTRO</option></select></div>
               <div class="fg"><label>Tipo de Venda</label><select class="fi" id="v-tipo"><option>TRAFEGO PAGO</option><option>CLIENTE RECORRENTE</option><option>INDICAÇÃO</option><option>PRESENCIAL</option><option>MARKETPLACE</option><option>REVENDA</option></select></div>
               <div class="fg"><label>Valor de Venda (R$) <span class="req">*</span></label><input class="fi" id="v-val" type="number" step="0.01" placeholder="0,00" oninput="calcVnd()"></div>
               <div class="fg"><label>Desconto (R$)</label><input class="fi" id="v-dsc" type="number" step="0.01" placeholder="0,00" oninput="calcVnd()"></div>
@@ -819,6 +840,20 @@ async function fillVendedores(){
   });
 }
 let catTipoAtual='';
+async function quickAddCat(tipo,placeholder){
+  const val=window.prompt(placeholder||'Digite o valor:');
+  if(!val||!val.trim())return;
+  const valor=val.trim().toUpperCase();
+  const{error}=await sb.from('catalogo').insert({loja_id:lojaId,tipo,valor});
+  if(error){showToast('Erro: '+error.message,'err');return;}
+  showToast(valor+' adicionado!');
+  await loadCatalogo();
+  // Auto-select the new value
+  const selId=tipo==='modelo'?'p-mod':tipo==='cor'?'p-cor':'p-gb';
+  const sel=document.getElementById(selId);
+  if(sel){setTimeout(()=>{sel.value=valor;},200);}
+}
+
 function showAddCat(tipo){
   catTipoAtual=tipo;
   const labels={modelo:'Nome do modelo (ex: IPHONE 18)',cor:'Nome da cor (ex: TITÂNIO AZUL)',gb:'Armazenamento (ex: 2TB)',vendedor:'Nome do vendedor'};
@@ -855,8 +890,12 @@ async function loadEst(){
 let ocultarVendidos=true;
 function toggleVendidos(){
   ocultarVendidos=!ocultarVendidos;
-  const btn=document.getElementById('btn-toggle-vendidos');
-  if(btn){btn.textContent=ocultarVendidos?'👁 Ocultar vendidos':'👁 Mostrar vendidos';btn.style.background=ocultarVendidos?'rgba(57,255,20,.08)':'rgba(255,255,255,.05)';}
+  const sw=document.getElementById('sw-vendidos');
+  const knob=document.getElementById('sw-knob');
+  const lbl=document.getElementById('lbl-toggle');
+  if(sw){sw.style.background=ocultarVendidos?'var(--neon)':'var(--dim)';}
+  if(knob){knob.style.left=ocultarVendidos?'2px':'18px';}
+  if(lbl){lbl.textContent=ocultarVendidos?'Ocultar vendidos':'Mostrar vendidos';}
   renderEst();
 }
 function renderEst(){
@@ -1097,9 +1136,8 @@ function renderVnd(){
     <td style="font-size:11px">${v.produto_nome||'—'}</td>
     <td class="mono">${v.imei||'—'}</td>
     <td style="color:var(--muted);font-size:10px">${v.gb||'—'}</td>
-    <td class="priceg">${fm(v.valor)}</td>
-    <td style="color:var(--muted);font-size:11px">${v.desconto>0?fm(v.desconto):'—'}</td>
-    <td style="color:var(--neon);font-weight:700">${fm(v.valor_final||v.valor)}</td>
+    <td style="color:var(--muted);font-size:10px">${v.canal_aquisicao||v.tipo_venda||'—'}</td>
+    <td class="priceg">${fm(v.valor_final||(parseFloat(v.valor||0)-parseFloat(v.desconto||0)))}</td>
     <td style="color:var(--muted);font-size:11px">${v.forma_pagamento||'—'}</td>
     <td><span class="bdg ok">Concluído</span></td>
     <td style="display:flex;gap:4px">
@@ -1276,6 +1314,7 @@ async function saveVnd(){
     gb:pOpt?.dataset.gb||null,
     imei:prodImei,
     vendedor:document.getElementById('v-vendedor').value||null,
+    canal_aquisicao:document.getElementById('v-canal')?.value||null,
     tipo_venda:document.getElementById('v-tipo').value,
     valor:vVal,
     desconto:vDsc,
@@ -1326,6 +1365,24 @@ function exportVendas(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='vendas-rt-phone.csv';a.click();
   showToast('CSV exportado!');
+}
+
+async function buscaCep(cep){
+  const c=cep.replace(/[^0-9]/g,'');
+  if(c.length!==8)return;
+  try{
+    const r=await fetch('https://viacep.com.br/ws/'+c+'/json/');
+    const d=await r.json();
+    if(d.erro)return;
+    const rua=document.getElementById('c-rua');const bai=document.getElementById('c-bai');
+    const cid=document.getElementById('c-cid');const uf=document.getElementById('c-uf');
+    if(rua)rua.value=d.logradouro||'';
+    if(bai)bai.value=d.bairro||'';
+    if(cid)cid.value=d.localidade||'';
+    if(uf)uf.value=d.uf||'';
+    showToast('Endereço encontrado!');
+    document.getElementById('c-num')?.focus();
+  }catch(e){}
 }
 
 function exportClientes(){
