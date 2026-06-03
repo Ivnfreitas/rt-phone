@@ -166,127 +166,72 @@ textarea.fi{resize:vertical;min-height:65px}
 .modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
 
 /* ========== MOBILE RESPONSIVE ========== */
+.fab{display:none!important}
+.mobile-cards{display:none}
+
 @media(max-width:768px){
   :root{--sw:0px}
-
-  /* Sidebar vira menu bottom */
-  .sidebar{
-    width:100%!important;height:60px;bottom:0;top:auto;
-    flex-direction:row;border-right:none;
-    border-top:1px solid var(--bd);z-index:200;
-    overflow:hidden;
-  }
+  .sidebar{width:100%!important;height:64px;bottom:0;top:auto;position:fixed;flex-direction:row;border-right:none;border-top:1px solid var(--bd);z-index:200;overflow:hidden;background:var(--s1)}
   .sb-top,.sb-user,.sb-foot,.sb-sec,.sb-plan,.sb-loja,.btn-out{display:none!important}
-  .sb-nm,.sb-tg,.sb-av{display:none!important}
-  .sb-nav{
-    display:flex!important;flex-direction:row;align-items:center;
-    justify-content:space-around;padding:0;width:100%;overflow:visible;
-  }
-  .ni{
-    flex-direction:column;gap:2px;padding:6px 4px;
-    font-size:9px!important;color:var(--muted);
-    border-radius:0;margin:0;flex:1;text-align:center;
-    justify-content:center;min-width:0;
-  }
-  .ni svg{width:20px!important;height:20px!important;margin:0 auto}
+  .sb-nav{display:flex!important;flex-direction:row;align-items:center;justify-content:space-around;padding:0 8px;width:100%;overflow:visible}
+  .ni{flex-direction:column;gap:2px;padding:8px 4px;font-size:9px!important;color:var(--muted);border-radius:0;margin:0;flex:1;text-align:center;justify-content:center;min-width:0}
+  .ni svg{width:22px!important;height:22px!important;margin:0 auto;display:block}
+  .ni span{display:block;margin-top:2px}
   .ni.active{background:transparent;color:var(--neon)}
-  .ni.active svg{filter:drop-shadow(0 0 4px var(--neon))}
-
-  /* Main area */
-  .main{margin-left:0!important;padding-bottom:70px}
-  .topbar{
-    height:52px;padding:0 14px;
-    position:sticky;top:0;z-index:100;
-  }
-  .tb-title{font-size:14px}
+  .ni.active svg{filter:drop-shadow(0 0 6px rgba(57,255,20,.5))}
+  .main{margin-left:0!important;padding-bottom:72px}
+  .topbar{height:54px;padding:0 16px;position:sticky;top:0;z-index:100}
+  .tb-title{font-size:16px;font-weight:700}
   .tb-emp{display:none}
-  .pcontent{padding:12px!important}
-
-  /* Dashboard KPI cards - 2 columns */
-  .dash-kpi-grid{
-    grid-template-columns:1fr 1fr!important;
-    gap:8px!important;margin-bottom:8px!important;
-  }
-  .dcard{padding:12px 14px!important}
-  .dcard-val{font-size:18px!important;letter-spacing:-.5px!important}
+  .pcontent{padding:14px!important}
+  .dash-kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important;margin-bottom:10px!important}
+  .dcard{padding:16px!important;border-radius:14px!important}
+  .dcard-val{font-size:20px!important;font-weight:800!important}
   .dcard-proj{font-size:9px!important}
-  .dcard-lbl{font-size:10px!important;margin-top:3px!important}
-  .dcard-ico{font-size:32px!important;right:8px!important}
-
-  /* Entradas/saidas - 1 coluna */
-  .dash-kpi-grid + div > div:first-child,
-  div[style*="grid-template-columns:1fr 1fr"]{
-    grid-template-columns:1fr!important;
-  }
-
-  /* Tables - scroll horizontal */
-  .dt{font-size:11px}
-  .dt th{padding:6px 8px;font-size:8px}
-  .dt td{padding:7px 8px}
-  div[style*="overflow-x:auto"]{overflow-x:auto;-webkit-overflow-scrolling:touch}
-
-  /* Filter bar */
-  .fbar{gap:6px}
-  .fsearch{font-size:12px;padding:6px 10px}
-  .btsm{font-size:11px;padding:6px 10px}
-
-  /* Form grid - single column */
-  .fgrid{grid-template-columns:1fr!important;gap:8px!important}
+  .dcard-lbl{font-size:11px!important;font-weight:600!important;margin-top:6px!important}
+  .dcard-ico{font-size:36px!important;right:10px!important}
+  .fgrid{grid-template-columns:1fr!important;gap:10px!important}
   .full{grid-column:1!important}
-  .fbody{padding:14px!important}
-  .farea-head{padding:10px 14px}
-  .tabs{padding:6px 10px;gap:4px}
-  .tab{font-size:10px;padding:4px 8px}
-
-  /* Section cards */
-  .scard{border-radius:10px}
-  .shead{padding:10px 14px;flex-wrap:wrap;gap:6px}
-  .shead-t{font-size:12px}
-
-  /* Smrow - 2 cols */
+  .fbody{padding:16px!important}
+  .fi{font-size:16px!important;padding:12px 14px!important;min-height:48px!important;border-radius:10px!important}
+  .fg label{font-size:12px!important;margin-bottom:6px!important}
+  .farea-head{padding:14px 16px}
+  .tabs{padding:8px 12px;gap:6px;overflow-x:auto}
+  .tab{font-size:12px;padding:6px 12px;white-space:nowrap}
+  .ffoot{padding:14px 16px;gap:10px}
+  .btnneon-sm{font-size:14px;padding:12px 20px;border-radius:10px;min-height:48px}
+  .fghost{font-size:14px;padding:11px 16px;min-height:48px}
+  .trow{gap:8px;margin-bottom:14px}
+  .tbtn{padding:10px;font-size:12px;min-height:44px}
+  .shead{padding:14px 16px}
+  .shead-t{font-size:14px}
+  .fbar{flex-wrap:wrap;gap:8px}
+  .fsearch{font-size:14px;padding:10px 14px;min-height:44px}
+  .btsm{font-size:12px;padding:8px 14px;min-height:38px}
   .smrow{grid-template-columns:1fr 1fr!important;gap:8px!important}
-  .smv{font-size:18px}
-
-  /* Modal */
-  .modal{width:90%!important;padding:20px!important;margin:0 16px}
-  .modal-bg{align-items:flex-end;padding-bottom:0}
-  .modal{border-radius:16px 16px 0 0!important}
-
-  /* Login */
-  .lcard{padding:24px 20px!important}
-  .rtlogoimg{width:240px!important}
-  .lh{font-size:16px}
-  .ls{font-size:12px}
-
-  /* Catalog grid */
-  div[style*="grid-template-columns:repeat(3,1fr)"]{
-    grid-template-columns:1fr!important;
-  }
-
-  /* Ffoot */
-  .ffoot{padding:10px 14px;gap:6px;flex-wrap:wrap}
-  .btnneon-sm{font-size:12px;padding:8px 14px}
-  .fghost{font-size:12px;padding:7px 12px}
-
-  /* Topbar logo area */
-  .topbar .tb-r{gap:6px}
-
-  /* Hide less important columns on mobile */
-  .dt th:nth-child(6),.dt td:nth-child(6),
-  .dt th:nth-child(7),.dt td:nth-child(7){display:none}
-
-  /* Breakdown table - stack */
-  div[style*="grid-template-columns:1fr 1fr;gap:20px"]{
-    grid-template-columns:1fr!important;gap:0!important;
-  }
+  .smv{font-size:20px!important}
+  .sml{font-size:10px!important}
+  .modal-bg{align-items:flex-end;padding:0}
+  .modal{width:100%!important;border-radius:20px 20px 0 0!important;padding:24px 20px 32px!important;max-height:85vh;overflow-y:auto}
+  .lcard{padding:28px 20px!important}
+  .rtlogoimg{width:220px!important}
+  .desktop-only{display:none!important}
+  .mobile-cards{display:block!important}
+  .fab{display:flex!important;align-items:center;justify-content:center;gap:8px;position:fixed;bottom:80px;right:16px;z-index:300;background:var(--neon);color:#000;font-weight:800;font-size:14px;border:none;border-radius:28px;padding:14px 22px;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 4px 20px rgba(57,255,20,.4)}
+  .m-card{background:var(--s2);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer}
+  .m-card:active{border-color:rgba(57,255,20,.4)}
+  .m-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+  .m-card-name{font-size:15px;font-weight:700;color:var(--text);flex:1;margin-right:10px}
+  .m-card-val{font-size:17px;font-weight:800;color:var(--neon);white-space:nowrap}
+  .m-card-id{font-size:10px;color:var(--dim);margin-top:2px}
+  .m-card-bot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px}
+  .m-card-info{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px}
+  .m-card-tag{background:var(--s3);border:1px solid var(--bd);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--muted)}
+  .m-card-tag.neon{background:rgba(57,255,20,.1);border-color:rgba(57,255,20,.2);color:var(--neon)}
 }
-
 @media(max-width:480px){
-  .dash-kpi-grid{grid-template-columns:1fr!important}
-  .dcard-val{font-size:22px!important}
+  .dcard-val{font-size:17px!important}
   .rtlogoimg{width:200px!important}
-  .ni{font-size:8px!important}
-  .ni svg{width:18px!important;height:18px!important}
 }
 </style>
 </head>
@@ -587,6 +532,13 @@ textarea.fi{resize:vertical;min-height:65px}
           <tbody id="t-cli"><tr class="erow"><td colspan="7">Carregando...</td></tr></tbody></table>
           <div class="pgr"><div class="pgr-info" id="pg-cli">0 clientes</div></div>
         </div>
+        <!-- Mobile cards -->
+        <div id="t-cli-mobile" class="mobile-cards"></div>
+        <div class="mobile-cards" style="padding:8px 4px;font-size:12px;color:var(--muted)" id="pg-cli-m"></div>
+        <button class="fab" onclick="goPage('form-cliente')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Cadastrar
+        </button>
       </div>
 
       <!-- FORM CLIENTE -->
@@ -639,7 +591,12 @@ textarea.fi{resize:vertical;min-height:65px}
 
       <!-- VENDAS -->
       <div id="pVendas" class="h">
-        <div class="fbar">
+        <!-- FAB mobile -->
+        <button class="fab" onclick="goPage('form-venda')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nova Venda
+        </button>
+        <div class="fbar desktop-only">
           <input class="fsearch" id="se-vnd" placeholder="Buscar cliente, produto..." oninput="renderVnd()" style="flex:1;max-width:200px">
           <select class="fsearch" id="sf-vendedor" onchange="renderVnd()" style="max-width:140px"><option value="">Todos vendedores</option></select>
           <select class="fsearch" id="sf-vmod" onchange="renderVnd()" style="max-width:160px"><option value="">Todos modelos</option></select>
@@ -649,7 +606,14 @@ textarea.fi{resize:vertical;min-height:65px}
           <button class="btsm neon" onclick="goPage('form-venda')">+ Nova Venda</button>
           <button class="btsm" onclick="exportVendas()">↓ Exportar CSV</button>
         </div>
-        <div class="scard">
+        <!-- Mobile search -->
+        <div class="mobile-cards" style="margin-bottom:10px">
+          <input class="fsearch" style="width:100%;font-size:14px;padding:10px 14px" id="se-vnd-m" placeholder="Buscar cliente, produto..." oninput="document.getElementById('se-vnd').value=this.value;renderVnd()">
+        </div>
+        <!-- Mobile cards container -->
+        <div id="t-vnd-mobile" class="mobile-cards"></div>
+        <div class="mobile-cards" style="padding:8px 4px;font-size:12px;color:var(--muted)" id="pg-vnd-m"></div>
+        <div class="scard desktop-only">
           <div style="overflow-x:auto">
           <table class="dt" style="min-width:800px">
             <thead><tr><th>Cód.</th><th>Data</th><th>Vendedor</th><th>Cliente</th><th>Produto</th><th>IMEI</th><th>GB</th><th>Canal</th><th>Valor Final</th><th>Forma Pag.</th><th>Status</th><th></th></tr></thead>
@@ -1160,6 +1124,28 @@ function renderCli(){
   const tb=document.getElementById('t-cli');
   if(!list.length){tb.innerHTML='<tr class="erow"><td colspan="7">Nenhum cliente encontrado</td></tr>';document.getElementById('pg-cli').textContent='0 clientes';return;}
   const tc=t=>t==='Cliente'?'ok':t==='Fornecedor'?'info':'warn';
+  // === MOBILE CARDS ===
+  const mboxc=document.getElementById('t-cli-mobile');
+  const pgmc=document.getElementById('pg-cli-m');
+  if(mboxc){
+    const icoPhone='<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+    mboxc.innerHTML=!list.length?'<p style="text-align:center;color:var(--muted);padding:40px;font-size:13px">Nenhum cliente encontrado</p>':
+      list.map(c=>`<div class="m-card" onclick="editCli('${c.id}')">
+        <div class="m-card-top">
+          <div>
+            <div class="m-card-name">${c.nome}</div>
+            <div class="m-card-id">${c.cpf||'Sem CPF'}</div>
+          </div>
+          <span class="m-card-tag ${c.tipo==='Cliente'?'neon':''}">${c.tipo}</span>
+        </div>
+        <div class="m-card-bot">
+          ${c.telefone?`<span class="m-card-info">${icoPhone} ${c.telefone}</span>`:''}
+          ${c.email?`<span class="m-card-info" style="color:var(--dim)">${c.email}</span>`:''}
+        </div>
+      </div>`).join('');
+    if(pgmc)pgmc.textContent=list.length+' registro'+(list.length!==1?'s':'');
+  }
+
   tb.innerHTML=list.map(c=>`<tr>
     <td style="font-weight:700;font-size:11px">${c.codigo||'—'}</td>
     <td style="font-weight:600">${c.nome}</td>
@@ -1256,6 +1242,32 @@ function renderVnd(){
   });
   const tb=document.getElementById('t-vnd');
   if(!list.length){tb.innerHTML='<tr class="erow"><td colspan="10">Nenhuma venda encontrada</td></tr>';document.getElementById('pg-vnd').textContent='0 vendas';document.getElementById('pg-vnd-total').textContent='';return;}
+  // === MOBILE CARDS ===
+  const mbox=document.getElementById('t-vnd-mobile');
+  const pgm=document.getElementById('pg-vnd-m');
+  if(mbox){
+    const icoDate='<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+    const icoUser='<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    const vFinal=v=>Math.max(0,parseFloat(v.valor_final||0)||(parseFloat(v.valor||0)-parseFloat(v.desconto||0)));
+    mbox.innerHTML=!list.length?'<p style="text-align:center;color:var(--muted);padding:40px;font-size:13px">Nenhuma venda encontrada</p>':
+      list.map(v=>`<div class="m-card">
+        <div class="m-card-top">
+          <div>
+            <div class="m-card-name">${(v.cliente_nome||'—').substring(0,28)}${(v.cliente_nome||'').length>28?'...':''}</div>
+            <div class="m-card-id">ID: ${v.codigo||'—'}</div>
+          </div>
+          <div class="m-card-val">${fm(vFinal(v))}</div>
+        </div>
+        <div class="m-card-bot">
+          <span class="m-card-info">${icoDate} ${fd(v.data_venda)}</span>
+          <span class="m-card-info">${icoUser} ${v.vendedor||'—'}</span>
+          ${v.canal_aquisicao||v.tipo_venda?`<span class="m-card-tag">${(v.canal_aquisicao||v.tipo_venda||'').substring(0,16)}</span>`:''}
+          ${v.forma_pagamento?`<span class="m-card-tag neon">${v.forma_pagamento}</span>`:''}
+        </div>
+      </div>`).join('');
+    if(pgm)pgm.textContent=list.length+' venda'+(list.length!==1?'s':'')+' · Total: '+fm(list.reduce((a,v)=>a+vFinal(v),0));
+  }
+
   tb.innerHTML=list.map(v=>`<tr>
     <td style="font-weight:700;font-size:11px">${v.codigo||'—'}</td>
     <td style="font-size:10px;color:var(--dim)">${fd(v.data_venda)}</td>
