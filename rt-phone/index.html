@@ -404,6 +404,9 @@ textarea.fi{resize:vertical;min-height:65px}
       <div class="ni" onclick="goPage('relatorio')">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Relatórios</span>
       </div>
+      <div class="ni" id="ni-imei" onclick="goPage('imei')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Rastreio</span>
+      </div>
     </nav>
     <div class="sb-foot">
       <div class="sb-loja" id="sb-loja">—</div>
@@ -735,6 +738,18 @@ textarea.fi{resize:vertical;min-height:65px}
         </div>
       </div>
 
+      <!-- HISTORICO IMEI -->
+      <div id="pImei" class="h">
+        <div class="scard" style="margin-bottom:14px">
+          <div class="shead"><div class="shead-t">🔍 Rastreio de Aparelho por IMEI</div></div>
+          <div style="padding:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input class="fsearch" id="imei-busca" placeholder="Digite o IMEI para buscar..." style="flex:1;min-width:200px;font-size:14px;padding:10px 14px">
+            <button class="btnneon-sm" onclick="buscarHistoricoImei()">🔍 Buscar</button>
+          </div>
+        </div>
+        <div id="imei-resultado"></div>
+      </div>
+
       <!-- RELATORIO -->
       <div id="pRelatorio" class="h" style="text-align:center;padding:60px 20px;color:var(--muted)">
         <div style="font-size:36px;margin-bottom:12px;opacity:.3">📊</div>
@@ -880,9 +895,9 @@ async function doSignup(){
 async function doLogout(){await sb.auth.signOut();currentUser=null;lojaId=null;document.getElementById('vApp').classList.add('h');document.getElementById('vLogin').classList.remove('h');showLogin();}
 
 // NAVIGATION
-const pgMap={dash:'Dashboard',estoque:'Estoque Atual',clientes:'Clientes',vendas:'Vendas (PDV)',relatorio:'Relatórios',catalogo:'Catálogo','form-produto':'Cadastrar Produto','form-cliente':'Cadastrar Cliente','form-venda':'Nova Venda'};
-const niMap={dash:'ni-dash',estoque:'ni-estoque',clientes:'ni-clientes',vendas:'ni-vendas',catalogo:'ni-catalogo'};
-const pElMap={dash:'pDash',estoque:'pEstoque',clientes:'pClientes',vendas:'pVendas',relatorio:'pRelatorio',catalogo:'pCatalogo','form-produto':'pFormProduto','form-cliente':'pFormCliente','form-venda':'pFormVenda'};
+const pgMap={dash:'Dashboard',imei:'Rastreio IMEI',estoque:'Estoque Atual',clientes:'Clientes',vendas:'Vendas (PDV)',relatorio:'Relatórios',catalogo:'Catálogo','form-produto':'Cadastrar Produto','form-cliente':'Cadastrar Cliente','form-venda':'Nova Venda'};
+const niMap={dash:'ni-dash',imei:'ni-imei',estoque:'ni-estoque',clientes:'ni-clientes',vendas:'ni-vendas',catalogo:'ni-catalogo'};
+const pElMap={dash:'pDash',imei:'pImei',estoque:'pEstoque',clientes:'pClientes',vendas:'pVendas',relatorio:'pRelatorio',catalogo:'pCatalogo','form-produto':'pFormProduto','form-cliente':'pFormCliente','form-venda':'pFormVenda'};
 
 function goPage(p){
   Object.values(pElMap).forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('h');});
@@ -1686,6 +1701,44 @@ async function toggleVendedor(id,ativo){
   await sb.from('vendedores').update({ativo:!ativo}).eq('id',id);
   showToast(ativo?'Vendedor desativado':'Vendedor ativado');
   loadVendedores();
+}
+
+// BUSCA HISTÓRICO IMEI
+async function buscarHistoricoImei(){
+  const imei=document.getElementById('imei-busca')?.value?.trim();
+  if(!imei){showToast('Digite um IMEI','err');return;}
+  const res=document.getElementById('imei-resultado');
+  res.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted)">Buscando...</div>';
+  // Search ALL lojas for this IMEI (cross-loja tracking)
+  const{data,error}=await sb.from('historico_imei').select().eq('imei',imei).order('data_evento',{ascending:true});
+  if(error||!data||!data.length){
+    res.innerHTML=`<div class="scard" style="padding:30px;text-align:center"><div style="font-size:32px;margin-bottom:10px">✅</div><div style="font-weight:600;color:var(--text)">IMEI não encontrado</div><div style="color:var(--muted);font-size:12px;margin-top:6px">Este aparelho nunca esteve no sistema.</div></div>`;
+    return;
+  }
+  const primeiro=data[0];
+  const eventos_html=data.map((h,i)=>{
+    const ico=h.evento==='ENTRADA NO ESTOQUE'?'📦':h.evento==='VENDA'?'🛒':'🔄';
+    const cor=h.evento==='VENDA'?'var(--neon)':h.evento==='ENTRADA NO ESTOQUE'?'var(--blue)':'var(--amber)';
+    return `<div style="display:flex;gap:14px;padding:14px 0;border-bottom:${i<data.length-1?'1px solid var(--bd)':'none'}">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${ico}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;color:${cor};font-size:13px">${h.evento}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${fd(h.data_evento)} · ${h.pessoa_nome||'—'} (${h.pessoa_tipo||'—'})</div>
+        ${h.valor?`<div style="font-size:12px;color:var(--text);margin-top:2px">Valor: ${fm(h.valor)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  res.innerHTML=`
+    <div class="scard" style="margin-bottom:14px">
+      <div class="shead">
+        <div>
+          <div class="shead-t">📱 ${primeiro.modelo||'Aparelho'} ${primeiro.cor?'· '+primeiro.cor:''} ${primeiro.gb?'· '+primeiro.gb:''}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px;font-family:monospace">IMEI: ${imei}</div>
+        </div>
+        <span class="bdg ok">${data.length} evento${data.length!==1?'s':''}</span>
+      </div>
+      <div style="padding:4px 18px">${eventos_html}</div>
+    </div>`;
 }
 
 checkAuth();
