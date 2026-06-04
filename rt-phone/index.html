@@ -981,20 +981,33 @@ function setDashMesAtual(){
 }
 
 async function loadDash(){
+  // === DATE RANGE SETUP ===
+  const now=new Date();
+  const deEl=document.getElementById('dash-de');
+  const ateEl=document.getElementById('dash-ate');
+  if(deEl&&!deEl.value) deEl.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+  if(ateEl&&!ateEl.value) ateEl.value=today();
+  const dataIni=deEl?.value||(now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01');
+  const dataFim=ateEl?.value||today();
+
+  // Update date label
   const dtxt=document.getElementById('dtxt');
   if(dtxt){
-    const dini=new Date(dataIni+'T12:00:00');
-    const dfim=new Date(dataFim+'T12:00:00');
+    const d1=new Date(dataIni+'T12:00:00');
+    const d2=new Date(dataFim+'T12:00:00');
     const fmt=d=>d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
-    dtxt.textContent=fmt(dini)+' → '+fmt(dfim);
+    dtxt.textContent=fmt(d1)+' → '+fmt(d2);
   }
+
+  // === QUERIES WITH DATE FILTER ===
   const[{data:vnds},{data:prods}]=await Promise.all([
-    sb.from('vendas').select('valor,desconto,produto_nome,cliente_nome,forma_pagamento,data_venda,status,codigo,vendedor').eq('loja_id',lojaId).order('created_at',{ascending:false}),
+    sb.from('vendas').select('valor,desconto,valor_final,produto_nome,cliente_nome,forma_pagamento,data_venda,status,codigo,vendedor').eq('loja_id',lojaId).gte('data_venda',dataIni).lte('data_venda',dataFim).order('data_venda',{ascending:false}),
     sb.from('produtos').select('valor_custo,valor_venda,lucro,disponibilidade').eq('loja_id',lojaId),
   ]);
-  // valor_final = valor - desconto; for old sales calculate on the fly
-  const vFinal=v=>parseFloat(v.valor_final||(parseFloat(v.valor||0)-parseFloat(v.desconto||0)))||0;
-  const fat=(vnds||[]).reduce((a,v)=>a+Math.max(0,vFinal(v)),0);
+
+  // === CALCULATIONS ===
+  const vFinal=v=>Math.max(0,parseFloat(v.valor_final)||Math.max(0,parseFloat(v.valor||0)-parseFloat(v.desconto||0)));
+  const fat=(vnds||[]).reduce((a,v)=>a+vFinal(v),0);
   const fatBruto=(vnds||[]).reduce((a,v)=>a+(parseFloat(v.valor)||0),0);
   const totalDesc=(vnds||[]).reduce((a,v)=>a+(parseFloat(v.desconto)||0),0);
   const qtdVnd=(vnds||[]).length;
@@ -1002,14 +1015,15 @@ async function loadDash(){
   const ticket=qtdVnd>0?fat/qtdVnd:0;
   const pct=fat>0?(lucroR/fat*100):0;
   const lmed=qtdVnd>0?lucroR/qtdVnd:0;
-  // Projeção - só calcula se o período inclui hoje
-  const hoje=new Date();
-  const diaAtual=hoje.getDate();
-  const diasNoMes=new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate();
-  const diffDias=Math.max(1,Math.ceil((new Date(dataFim)-new Date(dataIni))/(1000*60*60*24))+1);
-  const diasPassados=Math.max(1,Math.ceil((hoje-new Date(dataIni))/(1000*60*60*24))+1);
-  const fatorProj=diffDias>=28?(diasNoMes/diaAtual):(diffDias/Math.min(diasPassados,diffDias));
-  const ehMesAtual=dataFim===today()&&dataIni===hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0')+'-01';
+
+  // === PROJEÇÃO (só no mês atual) ===
+  const diaAtual=now.getDate();
+  const diasNoMes=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const mesAtualIni=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+  const ehMesAtual=dataIni===mesAtualIni&&dataFim===today();
+  const fatorProj=ehMesAtual&&diaAtual>0?diasNoMes/diaAtual:1;
+
+  // === UPDATE CARDS ===
   document.getElementById('k-fat').textContent=r2(fat);
   document.getElementById('k-fat-proj').textContent=ehMesAtual?r2(fat*fatorProj):'—';
   document.getElementById('k-vnds').textContent=qtdVnd;
@@ -1025,20 +1039,23 @@ async function loadDash(){
   document.getElementById('b-ent-vl').textContent=r2(fatBruto);
   document.getElementById('b-vnd-qt').textContent=qtdVnd;
   document.getElementById('b-vnd-vl').textContent=r2(fat);
+
+  // === ÚLTIMAS VENDAS ===
   const uv=document.getElementById('d-ultvendas');
-  uv.innerHTML=!(vnds||[]).length?'<tr class="erow"><td colspan="9">Nenhuma venda registrada ainda</td></tr>':
+  uv.innerHTML=!(vnds||[]).length?'<tr class="erow"><td colspan="9">Nenhuma venda no período selecionado</td></tr>':
     (vnds||[]).slice(0,10).map(v=>`<tr>
       <td style="font-weight:700;font-size:11px">${v.codigo||'—'}</td>
       <td style="font-size:10px;color:var(--dim)">${fd(v.data_venda)}</td>
       <td style="color:var(--muted);font-size:11px">${v.vendedor||'—'}</td>
       <td style="font-weight:500;font-size:11px">${v.cliente_nome||'—'}</td>
       <td style="font-size:11px">${v.produto_nome||'—'}</td>
-      <td class="priceg">${fm(v.valor_final||v.valor)}</td>
-      <td style="color:var(--muted);font-size:11px">${v.desconto>0?'- '+fm(v.desconto):'—'}</td>
+      <td class="priceg">${fm(vFinal(v))}</td>
+      <td style="color:var(--muted)">${v.desconto>0?'- '+fm(v.desconto):'—'}</td>
       <td style="color:var(--muted);font-size:11px">${v.forma_pagamento||'—'}</td>
       <td><span class="bdg ok">Concluído</span></td>
     </tr>`).join('');
 }
+
 
 // CATALOGO
 async function loadCatalogo(){
