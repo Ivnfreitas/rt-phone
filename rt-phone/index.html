@@ -1644,13 +1644,13 @@ function calcVnd(){
 
 async function saveVnd(){
   const btn=document.getElementById('btnSaveVnd');const err=document.getElementById('err-vnd');
-  if(!document.getElementById('v-val').value){err.textContent='Informe o valor';return;}
+  if(!document.getElementById('v-val')?.value){err.textContent='Informe o valor';return;}
   btn.disabled=true;btn.textContent='Salvando...';
   const editId=document.getElementById('v-edit-id').value;
   const pSel=document.getElementById('v-prod');const cSel=document.getElementById('v-cli');
   const pOpt=pSel.options[pSel.selectedIndex];const cOpt=cSel.options[cSel.selectedIndex];
-  const vVal=parseFloat(document.getElementById('v-val').value)||0;
-  const vDsc=parseFloat(document.getElementById('v-dsc').value)||0;
+  const vVal=parseFloat(document.getElementById('v-val')?.value)||0;
+  const vDsc=parseFloat(document.getElementById('v-dsc')?.value)||0;
   // Get IMEI from product
   const prodImei=document.getElementById('v-imei-show')?.value||null;
   const payload={
@@ -1658,15 +1658,14 @@ async function saveVnd(){
     produto_nome:pOpt?.dataset.nome||'Produto avulso',cliente_nome:cOpt?.dataset.nome||'—',
     gb:pOpt?.dataset.gb||null,
     imei:prodImei,
-    vendedor:document.getElementById('v-vendedor').value||null,
+    vendedor:document.getElementById('v-vendedor')?.value||null,
     canal_aquisicao:document.getElementById('v-canal')?.value||null,
     tipo_venda:document.getElementById('v-canal')?.value||null,
     pagamentos:pagamentos.length>0?pagamentos:null,
-    forma_pagamento:pagamentos.length>0?pagamentos.map(p=>p.parcelas>1?p.forma+' '+p.parcelas+'x':p.forma).join(' + '):document.getElementById('pag-forma')?.value||'PIX',
+    forma_pagamento:pagamentos.length>0?pagamentos.map(p=>p.parcelas>1?p.forma+' '+p.parcelas+'x':p.forma).join(' + '):(document.getElementById('pag-forma')?.value||'PIX'),
     valor:vVal,
     desconto:vDsc,
     valor_final:Math.max(0,vVal-vDsc),
-    forma_pagamento:document.getElementById('v-pag').value,
     data_venda:document.getElementById('v-dt').value||today(),
     status:'Concluído',observacao:document.getElementById('v-obs').value,
   };
