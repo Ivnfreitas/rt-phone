@@ -429,8 +429,12 @@ textarea.fi{resize:vertical;min-height:65px}
       <div id="pDash">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
           <span style="font-size:13px;font-weight:700;color:var(--text)">Dashboard</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input type="month" id="dash-mes" class="fsearch" style="padding:6px 10px;font-size:12px;max-width:150px" onchange="loadDash()">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:11px;color:var(--muted)">De</span>
+            <input type="date" id="dash-de" class="fsearch" style="padding:6px 10px;font-size:12px;max-width:140px" onchange="loadDash()">
+            <span style="font-size:11px;color:var(--muted)">Até</span>
+            <input type="date" id="dash-ate" class="fsearch" style="padding:6px 10px;font-size:12px;max-width:140px" onchange="loadDash()">
+            <button class="btsm" onclick="setDashMesAtual()" style="font-size:11px;padding:5px 10px">Mês atual</button>
             <span id="dtxt" style="font-size:10px;color:var(--dim)"></span>
           </div>
         </div>
@@ -967,8 +971,23 @@ async function confirmModal(){
 function calcP(){const c=parseFloat(document.getElementById('p-cst').value)||0,v=parseFloat(document.getElementById('p-vnd').value)||0,l=v-c,mg=v>0?(l/v*100).toFixed(1):0,mk=c>0?(l/c*100).toFixed(1):0;document.getElementById('p-luc').value=fm(l);document.getElementById('p-mrg').value=mg+'%';document.getElementById('p-mku').value=mk+'%';}
 
 // DASHBOARD
+function setDashMesAtual(){
+  const now=new Date();
+  const deEl=document.getElementById('dash-de');
+  const ateEl=document.getElementById('dash-ate');
+  if(deEl)deEl.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+  if(ateEl)ateEl.value=today();
+  loadDash();
+}
+
 async function loadDash(){
-  document.getElementById('dtxt').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const dtxt=document.getElementById('dtxt');
+  if(dtxt){
+    const dini=new Date(dataIni+'T12:00:00');
+    const dfim=new Date(dataFim+'T12:00:00');
+    const fmt=d=>d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+    dtxt.textContent=fmt(dini)+' → '+fmt(dfim);
+  }
   const[{data:vnds},{data:prods}]=await Promise.all([
     sb.from('vendas').select('valor,desconto,produto_nome,cliente_nome,forma_pagamento,data_venda,status,codigo,vendedor').eq('loja_id',lojaId).order('created_at',{ascending:false}),
     sb.from('produtos').select('valor_custo,valor_venda,lucro,disponibilidade').eq('loja_id',lojaId),
@@ -983,12 +1002,14 @@ async function loadDash(){
   const ticket=qtdVnd>0?fat/qtdVnd:0;
   const pct=fat>0?(lucroR/fat*100):0;
   const lmed=qtdVnd>0?lucroR/qtdVnd:0;
-  // Projeção baseada no dia do mês
+  // Projeção - só calcula se o período inclui hoje
   const hoje=new Date();
   const diaAtual=hoje.getDate();
   const diasNoMes=new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate();
-  const fatorProj=diaAtual>0?diasNoMes/diaAtual:1;
-  const ehMesAtual=mesEl?.value===hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  const diffDias=Math.max(1,Math.ceil((new Date(dataFim)-new Date(dataIni))/(1000*60*60*24))+1);
+  const diasPassados=Math.max(1,Math.ceil((hoje-new Date(dataIni))/(1000*60*60*24))+1);
+  const fatorProj=diffDias>=28?(diasNoMes/diaAtual):(diffDias/Math.min(diasPassados,diffDias));
+  const ehMesAtual=dataFim===today()&&dataIni===hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0')+'-01';
   document.getElementById('k-fat').textContent=r2(fat);
   document.getElementById('k-fat-proj').textContent=ehMesAtual?r2(fat*fatorProj):'—';
   document.getElementById('k-vnds').textContent=qtdVnd;
