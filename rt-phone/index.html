@@ -359,10 +359,15 @@ textarea.fi{resize:vertical;min-height:65px}
       <div id="formSignup" class="h">
         <div class="lh">Criar conta</div>
         <div class="ls">Configure sua loja no RT Phone</div>
-        <div class="fg" style="margin-top:14px"><label>Nome da Loja <span class="req">*</span></label><input class="fi" id="s-loja" placeholder="Nome da sua loja"></div>
+        <div class="fg" style="margin-top:14px">
+          <label>Código de Acesso <span class="req">*</span></label>
+          <input class="fi" id="s-codigo" placeholder="Código fornecido pelo suporte" autocomplete="off">
+          <div style="font-size:10px;color:var(--dim);margin-top:4px">Entre em contato para obter seu código de acesso.</div>
+        </div>
+        <div class="fg"><label>Nome da Loja <span class="req">*</span></label><input class="fi" id="s-loja" placeholder="Nome da sua loja"></div>
         <div class="fg"><label>E-mail <span class="req">*</span></label><input class="fi" id="s-email" type="email" placeholder="seu@email.com"></div>
         <div class="fg"><label>Senha <span class="req">*</span></label><input class="fi" id="s-senha" type="password" placeholder="Mínimo 6 caracteres"></div>
-        <button class="btnneon" id="btnSignup" onclick="doSignup()">Criar conta grátis</button>
+        <button class="btnneon" id="btnSignup" onclick="doSignup()">Criar conta</button>
         <div class="lswitch">Já tem conta? <a onclick="showLogin()">Entrar</a></div>
       </div>
     </div>
@@ -920,12 +925,34 @@ async function doLoginSmart(){
 }
 async function doLogin(){doLoginSmart();}
 async function doSignup(){
-  const btn=document.getElementById('btnSignup');btn.disabled=true;btn.textContent='Criando...';
-  const loja=document.getElementById('s-loja').value.trim(),email=document.getElementById('s-email').value.trim(),senha=document.getElementById('s-senha').value;
-  if(!loja||!email||!senha){showToast('Preencha todos os campos','err');btn.disabled=false;btn.textContent='Criar conta grátis';return;}
+  const btn=document.getElementById('btnSignup');
+  btn.disabled=true;btn.textContent='Verificando...';
+  const codigo=document.getElementById('s-codigo').value.trim().toUpperCase();
+  const loja=document.getElementById('s-loja').value.trim();
+  const email=document.getElementById('s-email').value.trim();
+  const senha=document.getElementById('s-senha').value;
+  if(!codigo||!loja||!email||!senha){
+    showToast('Preencha todos os campos','err');
+    btn.disabled=false;btn.textContent='Criar conta';return;
+  }
+  // Validate access code
+  const{data:cod,error:codErr}=await sb.from('codigos_acesso').select().eq('codigo',codigo).eq('usado',false).maybeSingle();
+  if(codErr||!cod){
+    showToast('Código de acesso inválido ou já utilizado','err');
+    btn.disabled=false;btn.textContent='Criar conta';return;
+  }
+  btn.textContent='Criando conta...';
+  // Create account
   const{error}=await sb.auth.signUp({email,password:senha,options:{data:{loja_nome:loja}}});
-  if(error){showToast(error.message,'err');btn.disabled=false;btn.textContent='Criar conta grátis';return;}
-  showToast('Conta criada! Verifique seu e-mail.');btn.disabled=false;btn.textContent='Criar conta grátis';showLogin();
+  if(error){
+    showToast(error.message,'err');
+    btn.disabled=false;btn.textContent='Criar conta';return;
+  }
+  // Mark code as used
+  await sb.from('codigos_acesso').update({usado:true,usado_por:email}).eq('id',cod.id);
+  showToast('✅ Conta criada com sucesso!');
+  btn.disabled=false;btn.textContent='Criar conta';
+  showLogin();
 }
 async function doLogout(){await sb.auth.signOut();currentUser=null;lojaId=null;document.getElementById('vApp').classList.add('h');document.getElementById('vLogin').classList.remove('h');showLogin();}
 
