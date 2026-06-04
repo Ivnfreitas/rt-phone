@@ -482,14 +482,23 @@ textarea.fi{resize:vertical;min-height:65px}
               <div id="sw-knob" style="width:16px;height:16px;background:#000;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .2s"></div>
             </div>
           </div>
-          <button class="btsm neon" onclick="goPage('form-produto')">+ Novo Produto</button>
+          <button class="btsm neon desktop-only" onclick="goPage('form-produto')">+ Novo Produto</button>
           <button class="btsm" onclick="loadEst()">↻</button>
         </div>
-        <div class="scard">
+        <!-- Desktop table -->
+        <div class="scard desktop-only">
           <table class="dt"><thead><tr><th>Cód.</th><th>Produto</th><th>IMEI 01</th><th>Nº Série</th><th>Venda</th><th>Custo</th><th>Lucro</th><th>Qtd</th><th>Entrada</th><th>Status</th><th></th></tr></thead>
-          <tbody id="t-est"><tr class="erow"><td colspan="10">Carregando...</td></tr></tbody></table>
+          <tbody id="t-est"><tr class="erow"><td colspan="11">Carregando...</td></tr></tbody></table>
           <div class="pgr"><div class="pgr-info" id="pg-est">0 produtos</div></div>
         </div>
+        <!-- Mobile cards -->
+        <div id="t-est-mobile" class="mobile-cards"></div>
+        <div class="mobile-cards" style="padding:8px 4px;font-size:12px;color:var(--muted)" id="pg-est-m"></div>
+        <!-- FAB estoque -->
+        <button class="fab" onclick="goPage('form-produto')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Produto
+        </button>
       </div>
 
       <!-- FORM PRODUTO -->
@@ -497,64 +506,59 @@ textarea.fi{resize:vertical;min-height:65px}
         <div class="farea">
           <div class="farea-head"><div class="farea-title">Cadastrar Produto em Estoque</div><button class="farea-back" onclick="goPage('estoque')">← Voltar</button></div>
           <input type="hidden" id="p-edit-id" value="">
-          <div class="tabs">
-            <div class="tab active" onclick="swTab(this,'fp-d')">Dados gerais</div>
-            <div class="tab" onclick="swTab(this,'fp-p')">Precificação</div>
-            <div class="tab" onclick="swTab(this,'fp-o')">Outras informações</div>
-          </div>
           <div class="fbody">
-            <div id="fp-d">
-              <div class="trow">
-                <div class="tbtn active" onclick="setTp(this,'Aparelho')">📱 Aparelho</div>
-                <div class="tbtn" onclick="setTp(this,'Acessório')">🎧 Acessório</div>
-                <div class="tbtn" onclick="setTp(this,'Peça')">🔧 Peça</div>
-              </div>
-              <input type="hidden" id="p-tp" value="Aparelho">
-              <div class="fgrid">
-                <div class="fg"><label>Disponibilidade</label><select class="fi" id="p-dsp"><option>Disponível para venda</option><option>Reservado</option><option>Em conserto</option></select></div>
-                <div class="fg"><label>IMEI</label><input class="fi" id="p-imei" placeholder="351057065846706" maxlength="15"></div>
-                <div class="fg"><label>IMEI 2</label><input class="fi" id="p-imei2" placeholder="Segundo IMEI"></div>
-                <div class="fg"><label>Modelo Aparelho <span class="req">*</span></label>
-                  <div style="display:flex;gap:6px">
-                    <select class="fi" id="p-mod" style="flex:1"><option value="">Selecionar</option></select>
-                    <button type="button" onclick="quickAddCat('modelo','Novo modelo (ex: IPHONE AIR)')" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--neon);border-radius:8px;padding:0 12px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0">+</button>
-                  </div>
-                </div>
-                <div class="fg"><label>Serial Number</label><input class="fi" id="p-ser" placeholder="DV6F72DKN735"></div>
-                <div class="fg"><label>Cor <span class="req">*</span></label>
-                  <div style="display:flex;gap:6px">
-                    <select class="fi" id="p-cor" style="flex:1"><option value="">Selecionar</option></select>
-                    <button type="button" onclick="quickAddCat('cor','Nova cor (ex: TITÂNIO AZUL)')" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--neon);border-radius:8px;padding:0 12px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0">+</button>
-                  </div>
-                </div>
-                <div class="fg"><label>GB</label>
-                  <div style="display:flex;gap:6px">
-                    <select class="fi" id="p-gb" style="flex:1"><option value="">Selecionar</option></select>
-                    <button type="button" onclick="quickAddCat('gb','Novo armazenamento (ex: 2TB)')" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--neon);border-radius:8px;padding:0 12px;cursor:pointer;font-size:16px;font-weight:700;flex-shrink:0">+</button>
-                  </div>
-                </div>
-                <div class="fg"><label>Marca</label><select class="fi" id="p-marca"><option>APPLE</option><option>SAMSUNG</option><option>XIAOMI</option><option>MOTOROLA</option></select></div>
-                <div class="fg"><label>Estado do Aparelho</label><select class="fi" id="p-est"><option>SEMINOVO</option><option>NOVO</option><option>USADO</option><option>PARA PEÇAS</option></select></div>
-                <div class="fg"><label>Saúde Bateria (%)</label><input class="fi" id="p-bat" type="number" min="0" max="100" placeholder="89"></div>
-                <div class="fg"><label>Quantidade <span class="req">*</span></label><input class="fi" id="p-qtd" type="number" min="1" value="1"></div>
-              </div>
+            <div class="trow">
+              <div class="tbtn active" onclick="setTp(this,'Aparelho')">📱 Aparelho</div>
+              <div class="tbtn" onclick="setTp(this,'Acessório')">🎧 Acessório</div>
+              <div class="tbtn" onclick="setTp(this,'Peça')">🔧 Peça</div>
             </div>
-            <div id="fp-p" class="h">
-              <div class="fgrid">
-                <div class="fg"><label>Valor Custo (R$) <span class="req">*</span></label><input class="fi" id="p-cst" type="number" step="0.01" placeholder="0,00" oninput="calcP()"></div>
-                <div class="fg"><label>Valor Venda (R$) <span class="req">*</span></label><input class="fi" id="p-vnd" type="number" step="0.01" placeholder="0,00" oninput="calcP()"></div>
-                <div class="fg"><label>Lucro (R$)</label><input class="fi calc" id="p-luc" readonly></div>
-                <div class="fg"><label>Margem (%)</label><input class="fi calc" id="p-mrg" readonly></div>
-                <div class="fg"><label>Mark-Up (%)</label><input class="fi calc" id="p-mku" readonly></div>
-                <div class="fg"><label>Dias de Garantia</label><input class="fi" id="p-gar" type="number" placeholder="90"></div>
+            <input type="hidden" id="p-tp" value="Aparelho">
+
+            <div class="fsect">Identificação</div>
+            <div class="fgrid">
+              <div class="fg"><label>Modelo Aparelho <span class="req">*</span></label>
+                <div style="display:flex;gap:6px">
+                  <select class="fi" id="p-mod" style="flex:1"><option value="">Selecionar</option></select>
+                  <button type="button" onclick="quickAddCat('modelo','Novo modelo (ex: IPHONE AIR)')" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--neon);border-radius:8px;padding:0 12px;cursor:pointer;font-size:18px;font-weight:700;flex-shrink:0">+</button>
+                </div>
               </div>
+              <div class="fg"><label>Cor</label>
+                <div style="display:flex;gap:6px">
+                  <select class="fi" id="p-cor" style="flex:1"><option value="">Selecionar</option></select>
+                  <button type="button" onclick="quickAddCat('cor','Nova cor (ex: TITÂNIO AZUL)')" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--neon);border-radius:8px;padding:0 12px;cursor:pointer;font-size:18px;font-weight:700;flex-shrink:0">+</button>
+                </div>
+              </div>
+              <div class="fg"><label>GB / Armazenamento</label>
+                <div style="display:flex;gap:6px">
+                  <select class="fi" id="p-gb" style="flex:1"><option value="">Selecionar</option></select>
+                  <button type="button" onclick="quickAddCat('gb','Novo armazenamento (ex: 2TB)')" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--neon);border-radius:8px;padding:0 12px;cursor:pointer;font-size:18px;font-weight:700;flex-shrink:0">+</button>
+                </div>
+              </div>
+              <div class="fg"><label>Marca</label><select class="fi" id="p-marca"><option>APPLE</option><option>SAMSUNG</option><option>XIAOMI</option><option>MOTOROLA</option></select></div>
+              <div class="fg"><label>IMEI 01</label><input class="fi" id="p-imei" placeholder="351057065846706" maxlength="15"></div>
+              <div class="fg"><label>IMEI 02</label><input class="fi" id="p-imei2" placeholder="Segundo IMEI (dual SIM)"></div>
+              <div class="fg"><label>Número de Série</label><input class="fi" id="p-ser" placeholder="DV6F72DKN735"></div>
+              <div class="fg"><label>Estado do Aparelho</label><select class="fi" id="p-est"><option>SEMINOVO</option><option>NOVO</option><option>USADO</option><option>PARA PEÇAS</option></select></div>
+              <div class="fg"><label>Saúde Bateria (%)</label><input class="fi" id="p-bat" type="number" min="0" max="100" placeholder="89"></div>
+              <div class="fg"><label>Disponibilidade</label><select class="fi" id="p-dsp"><option>Disponível para venda</option><option>Reservado</option><option>Em conserto</option></select></div>
+              <div class="fg"><label>Quantidade <span class="req">*</span></label><input class="fi" id="p-qtd" type="number" min="1" value="1"></div>
+              <div class="fg"><label>Data de Entrada <span class="req">*</span></label><input class="fi" id="p-dt" type="date"></div>
             </div>
-            <div id="fp-o" class="h">
-              <div class="fgrid">
-                <div class="fg"><label>Data de Entrada <span class="req">*</span></label><input class="fi" id="p-dt" type="date"></div>
-                <div class="fg"><label>SKU</label><input class="fi" id="p-sku" placeholder="Código interno"></div>
-                <div class="fg full"><label>Observação</label><textarea class="fi" id="p-obs" rows="3" placeholder="Observações..."></textarea></div>
-              </div>
+
+            <div class="fsect">Precificação</div>
+            <div class="fgrid">
+              <div class="fg"><label>Valor Custo (R$) <span class="req">*</span></label><input class="fi" id="p-cst" type="number" step="0.01" placeholder="0,00" oninput="calcP()"></div>
+              <div class="fg"><label>Valor Venda (R$) <span class="req">*</span></label><input class="fi" id="p-vnd" type="number" step="0.01" placeholder="0,00" oninput="calcP()"></div>
+              <div class="fg"><label>Lucro (R$)</label><input class="fi calc" id="p-luc" readonly></div>
+              <div class="fg"><label>Margem (%)</label><input class="fi calc" id="p-mrg" readonly></div>
+              <div class="fg"><label>Mark-Up (%)</label><input class="fi calc" id="p-mku" readonly></div>
+              <div class="fg"><label>Dias de Garantia</label><input class="fi" id="p-gar" type="number" placeholder="90"></div>
+            </div>
+
+            <div class="fsect">Outras Informações</div>
+            <div class="fgrid">
+              <div class="fg"><label>SKU / Código Interno</label><input class="fi" id="p-sku" placeholder="Código interno"></div>
+              <div class="fg full"><label>Observação</label><textarea class="fi" id="p-obs" rows="2" placeholder="Observações sobre o produto..."></textarea></div>
             </div>
           </div>
           <div class="ffoot">
@@ -1116,6 +1120,41 @@ function renderEst(){
     </td>
   </tr>`).join('');
   document.getElementById('pg-est').textContent=list.length+' produto'+(list.length!==1?'s':'');
+
+  // === MOBILE CARDS ESTOQUE ===
+  const estMbox=document.getElementById('t-est-mobile');
+  const estPgm=document.getElementById('pg-est-m');
+  if(estMbox){
+    const bcM=d=>d==='Disponível para venda'?'neon':d==='Vendido'?'':'';
+    const blM=d=>d==='Disponível para venda'?'Disponível':d;
+    estMbox.innerHTML=!list.length?'<p style="text-align:center;color:var(--muted);padding:40px;font-size:13px">Nenhum produto encontrado</p>':
+      list.map(p=>{
+        const nm=[p.modelo,p.cor,p.gb].filter(Boolean).join(' · ');
+        return `<div class="m-card">
+          <div class="m-card-top">
+            <div style="flex:1;min-width:0">
+              <div class="m-card-name">${nm||'Produto'}</div>
+              <div class="m-card-id">Cód. ${p.codigo||'—'} · ${p.estado||'—'}</div>
+            </div>
+            <div>
+              <div class="m-card-val">${fm(p.valor_venda)}</div>
+              <div style="font-size:10px;color:var(--muted);text-align:right">custo ${fm(p.valor_custo)}</div>
+            </div>
+          </div>
+          <div class="m-card-bot">
+            ${p.imei?`<span class="m-card-info" style="font-family:monospace;font-size:10px">📱 ${p.imei}</span>`:''}
+            ${p.serial?`<span class="m-card-info" style="font-family:monospace;font-size:10px">🔢 ${p.serial}</span>`:''}
+            <span class="m-card-tag ${bcM(p.disponibilidade)}">${blM(p.disponibilidade)}</span>
+            <span style="font-size:11px;color:var(--neon);font-weight:700;margin-left:auto">+${fm(p.lucro)}</span>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            ${p.disponibilidade!=='Vendido'?`<button class="btnneon-sm" style="flex:1;font-size:12px;padding:8px" onclick="goPage('form-venda')">Vender</button>`:''}
+            <button class="fghost" style="flex:1;font-size:12px;padding:8px;text-align:center" onclick="openModal('Editar Produto','Digite a senha master para editar.','edit-prod','${p.id}')">✏ Editar</button>
+          </div>
+        </div>`;
+      }).join('');
+    if(estPgm)estPgm.textContent=list.length+' produto'+(list.length!==1?'s':'');
+  }
 }
 function initProdForm(){
   document.getElementById('p-tp').value='Aparelho';
