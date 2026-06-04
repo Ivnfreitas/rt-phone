@@ -427,9 +427,12 @@ textarea.fi{resize:vertical;min-height:65px}
 
       <!-- DASHBOARD -->
       <div id="pDash">
-        <div style="font-size:10px;color:var(--dim);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:12px;font-weight:600;color:var(--muted)">Dashboard diário</span>
-          <span id="dtxt"></span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <span style="font-size:13px;font-weight:700;color:var(--text)">Dashboard</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="month" id="dash-mes" class="fsearch" style="padding:6px 10px;font-size:12px;max-width:150px" onchange="loadDash()">
+            <span id="dtxt" style="font-size:10px;color:var(--dim)"></span>
+          </div>
         </div>
         <div class="dash-kpi-grid">
           <div class="dcard green"><div class="dcard-val" id="k-fat">0,00</div><div class="dcard-proj">Projeção Mês Atual: <span id="k-fat-proj">0,00</span></div><div class="dcard-lbl">Faturamento (R$)</div><div class="dcard-ico">💵</div></div>
@@ -719,17 +722,41 @@ textarea.fi{resize:vertical;min-height:65px}
               <div class="fg h" id="v-imei-row"><label>IMEI do Produto</label><input class="fi" id="v-imei-show" readonly style="color:var(--neon);font-family:'Courier New',monospace;background:var(--s3)"></div>
               <div class="fg"><label>Cliente</label><select class="fi" id="v-cli"><option value="">Selecionar cliente...</option></select></div>
               <div class="fg"><label>Vendedor <span class="req">*</span></label><select class="fi" id="v-vendedor"><option value="">Selecionar vendedor...</option></select></div>
-              <div class="fg"><label>Canal de Aquisição</label><select class="fi" id="v-canal"><option>TRAFEGO PAGO</option><option>INDICAÇÃO</option><option>CLIENTE RECORRENTE</option><option>PRESENCIAL</option><option>INSTAGRAM</option><option>WHATSAPP</option><option>MARKETPLACE</option><option>REVENDA</option><option>OUTRO</option></select></div>
-              <div class="fg"><label>Tipo de Venda</label><select class="fi" id="v-tipo"><option>TRAFEGO PAGO</option><option>CLIENTE RECORRENTE</option><option>INDICAÇÃO</option><option>PRESENCIAL</option><option>MARKETPLACE</option><option>REVENDA</option></select></div>
-              <div class="fg"><label>Valor de Venda (R$) <span class="req">*</span></label><input class="fi" id="v-val" type="number" step="0.01" placeholder="0,00" oninput="calcVnd()"></div>
-              <div class="fg"><label>Desconto (R$)</label><input class="fi" id="v-dsc" type="number" step="0.01" placeholder="0,00" oninput="calcVnd()"></div>
+              <div class="fg"><label>Canal de Aquisição</label><select class="fi" id="v-canal"><option>TRAFEGO PAGO</option><option>INDICAÇÃO</option><option>CLIENTE RECORRENTE</option><option>PRESENCIAL</option><option>INSTAGRAM</option><option>WHATSAPP</option><option>MARKETPLACE</option><option>OLX</option><option>REVENDA</option><option>OUTRO</option></select></div>
+              <div class="fg"><label>Valor de Venda (R$) <span class="req">*</span></label><input class="fi" id="v-val" type="number" step="0.01" placeholder="0,00" oninput="calcVnd();calcPagRestante()"></div>
+              <div class="fg"><label>Desconto (R$)</label><input class="fi" id="v-dsc" type="number" step="0.01" placeholder="0,00" oninput="calcVnd();calcPagRestante()"></div>
               <div class="fg full" id="v-total-box" style="display:none">
                 <div style="background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.2);border-radius:9px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
                   <span style="font-size:12px;color:var(--muted)">Valor com desconto:</span>
                   <span style="font-size:20px;font-weight:800;color:var(--neon);font-family:'Courier New',monospace" id="v-total-calc">R$ 0,00</span>
                 </div>
               </div>
-              <div class="fg"><label>Forma de Pagamento <span class="req">*</span></label><select class="fi" id="v-pag"><option>PIX</option><option>Dinheiro</option><option>Cartão de Débito</option><option>Cartão de Crédito</option><option>Financiamento</option><option>Trocão</option></select></div>
+              <div class="fg full" style="margin-top:4px">
+                <label style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;display:block;margin-bottom:8px">Formas de Pagamento</label>
+                <div style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px">
+                  <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:10px">
+                    <div class="fg" style="margin:0"><label>Forma</label><select class="fi" id="pag-forma" style="padding:8px 10px"><option>PIX</option><option>Dinheiro</option><option>Cartão de Débito</option><option>Cartão de Crédito</option><option>Financiamento</option><option>Aparelho (Troca)</option><option>Cheque</option></select></div>
+                    <div class="fg" style="margin:0"><label>Valor (R$)</label><input class="fi" id="pag-valor" type="number" step="0.01" placeholder="0,00" style="padding:8px 10px" oninput="calcPagRestante()"></div>
+                    <div class="fg" style="margin:0"><label>Parcelas</label><select class="fi" id="pag-parc" style="padding:8px 10px;min-width:70px"><option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="6">6x</option><option value="10">10x</option><option value="12">12x</option></select></div>
+                    <button type="button" onclick="addPagamento()" style="background:var(--neon);border:none;border-radius:8px;padding:8px 14px;color:#000;font-weight:700;cursor:pointer;font-size:13px;height:40px;margin-top:18px;white-space:nowrap">+ Add</button>
+                  </div>
+                  <div id="pag-lista" style="display:flex;flex-direction:column;gap:6px"></div>
+                  <div id="pag-resumo" style="margin-top:10px;padding:10px;background:var(--s3);border-radius:8px;display:none">
+                    <div style="display:flex;justify-content:space-between;font-size:12px">
+                      <span style="color:var(--muted)">Total da venda:</span>
+                      <span id="pag-total-vnd" style="font-weight:600">R$ 0,00</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
+                      <span style="color:var(--muted)">Total pago:</span>
+                      <span id="pag-total-pago" style="font-weight:600;color:var(--neon)">R$ 0,00</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px solid var(--bd)">
+                      <span>Falta:</span>
+                      <span id="pag-falta" style="color:var(--amber)">R$ 0,00</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="fg"><label>Data da Venda</label><input class="fi" id="v-dt" type="date"></div>
               <div class="fg full"><label>Observações</label><textarea class="fi" id="v-obs" rows="2" placeholder="Observações da venda..."></textarea></div>
             </div>
@@ -956,12 +983,18 @@ async function loadDash(){
   const ticket=qtdVnd>0?fat/qtdVnd:0;
   const pct=fat>0?(lucroR/fat*100):0;
   const lmed=qtdVnd>0?lucroR/qtdVnd:0;
+  // Projeção baseada no dia do mês
+  const hoje=new Date();
+  const diaAtual=hoje.getDate();
+  const diasNoMes=new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate();
+  const fatorProj=diaAtual>0?diasNoMes/diaAtual:1;
+  const ehMesAtual=mesEl?.value===hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
   document.getElementById('k-fat').textContent=r2(fat);
-  document.getElementById('k-fat-proj').textContent=r2(fat*1.35);
+  document.getElementById('k-fat-proj').textContent=ehMesAtual?r2(fat*fatorProj):'—';
   document.getElementById('k-vnds').textContent=qtdVnd;
-  document.getElementById('k-vnds-proj').textContent=Math.round(qtdVnd*1.35);
+  document.getElementById('k-vnds-proj').textContent=ehMesAtual?Math.round(qtdVnd*fatorProj):'—';
   document.getElementById('k-lucro').textContent=r2(lucroR);
-  document.getElementById('k-lucro-proj').textContent=r2(lucroR*1.35);
+  document.getElementById('k-lucro-proj').textContent=ehMesAtual?r2(lucroR*fatorProj):'—';
   document.getElementById('k-ticket').textContent=r2(ticket);
   document.getElementById('k-pct').textContent=pct.toFixed(0)+'%';
   document.getElementById('k-lmed').textContent=r2(lmed);
@@ -1513,6 +1546,8 @@ async function initVndForm(){
   document.getElementById('v-dt').value=today();
   const tvb=document.getElementById('v-total-box');if(tvb)tvb.style.display='none';
   ['v-val','v-dsc','v-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  pagamentos=[];renderPagamentos();
+  const pr=document.getElementById('pag-resumo');if(pr)pr.style.display='none';
   // Produtos disponíveis
   const{data:prods}=await sb.from('produtos').select().eq('loja_id',lojaId).eq('disponibilidade','Disponível para venda');
   const ps=document.getElementById('v-prod');
@@ -1587,7 +1622,9 @@ async function saveVnd(){
     imei:prodImei,
     vendedor:document.getElementById('v-vendedor').value||null,
     canal_aquisicao:document.getElementById('v-canal')?.value||null,
-    tipo_venda:document.getElementById('v-tipo').value,
+    tipo_venda:document.getElementById('v-canal')?.value||null,
+    pagamentos:pagamentos.length>0?pagamentos:null,
+    forma_pagamento:pagamentos.length>0?pagamentos.map(p=>p.parcelas>1?p.forma+' '+p.parcelas+'x':p.forma).join(' + '):document.getElementById('pag-forma')?.value||'PIX',
     valor:vVal,
     desconto:vDsc,
     valor_final:Math.max(0,vVal-vDsc),
@@ -1740,6 +1777,69 @@ async function toggleVendedor(id,ativo){
   await sb.from('vendedores').update({ativo:!ativo}).eq('id',id);
   showToast(ativo?'Vendedor desativado':'Vendedor ativado');
   loadVendedores();
+}
+
+// ============================================================
+// MULTI-PAYMENT SYSTEM
+// ============================================================
+let pagamentos=[];
+
+function addPagamento(){
+  const forma=document.getElementById('pag-forma').value;
+  const valor=parseFloat(document.getElementById('pag-valor').value)||0;
+  const parc=parseInt(document.getElementById('pag-parc').value)||1;
+  if(!valor||valor<=0){showToast('Informe o valor','err');return;}
+  pagamentos.push({forma,valor,parcelas:parc});
+  document.getElementById('pag-valor').value='';
+  renderPagamentos();
+  calcPagRestante();
+}
+
+function removePagamento(idx){
+  pagamentos.splice(idx,1);
+  renderPagamentos();
+  calcPagRestante();
+}
+
+function renderPagamentos(){
+  const lista=document.getElementById('pag-lista');
+  if(!lista)return;
+  if(!pagamentos.length){lista.innerHTML='<div style="font-size:11px;color:var(--dim);text-align:center;padding:6px">Nenhuma forma adicionada</div>';return;}
+  lista.innerHTML=pagamentos.map((p,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:8px 12px">
+      <div>
+        <span style="font-weight:600;font-size:12px">${p.forma}</span>
+        ${p.parcelas>1?`<span style="color:var(--muted);font-size:11px"> · ${p.parcelas}x de ${fm(p.valor/p.parcelas)}</span>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-weight:700;color:var(--neon);font-size:13px">${fm(p.valor)}</span>
+        <button onclick="removePagamento(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function calcPagRestante(){
+  const vVal=parseFloat(document.getElementById('v-val')?.value)||0;
+  const vDsc=parseFloat(document.getElementById('v-dsc')?.value)||0;
+  const totalVnd=Math.max(0,vVal-vDsc);
+  const totalPago=pagamentos.reduce((a,p)=>a+p.valor,0);
+  const falta=totalVnd-totalPago;
+  const resumo=document.getElementById('pag-resumo');
+  const tvnd=document.getElementById('pag-total-vnd');
+  const tpago=document.getElementById('pag-total-pago');
+  const tfalta=document.getElementById('pag-falta');
+  if(resumo)resumo.style.display=totalVnd>0?'block':'none';
+  if(tvnd)tvnd.textContent=fm(totalVnd);
+  if(tpago)tpago.textContent=fm(totalPago);
+  if(tfalta){
+    tfalta.textContent=falta<=0?'✅ Completo':fm(falta);
+    tfalta.style.color=falta<=0?'var(--neon)':'var(--amber)';
+  }
+  // Auto-fill remaining amount
+  const pagValEl=document.getElementById('pag-valor');
+  if(pagValEl&&!pagValEl.value&&falta>0){
+    pagValEl.placeholder=r2(falta)+' (restante)';
+  }
 }
 
 // BUSCA HISTÓRICO IMEI
